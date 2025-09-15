@@ -1,11 +1,23 @@
 import NavLinkItem from "./NavLinkItem.jsx";
 
-export default function NavLinks({ onNavigate, onOpenLogin, onOpenCart }) {
+export default function NavLinks({
+  user,
+  onNavigate,
+  onOpenLogin,
+  onOpenCart,
+  onLogout,
+}) {
   const LINKS = [
     { to: "/products", label: "Products" },
     { to: "/cart", label: <CartIcon />, onClick: onOpenCart },
-    { to: "/login", label: "Login", onClick: onOpenLogin },
   ];
+
+  // Add login or logout link depending on user status
+  if (user) {
+    LINKS.push({ to: "#", label: "Logout", onClick: onLogout });
+  } else {
+    LINKS.push({ to: "/login", label: "Login", onClick: onOpenLogin });
+  }
 
   return (
     <ul className="links">
@@ -16,10 +28,10 @@ export default function NavLinks({ onNavigate, onOpenLogin, onOpenCart }) {
             className="link"
             onClick={(e) => {
               if (l.onClick) {
-                e.preventDefault(); // stop page navigation
-                l.onClick(); // open popup
+                e.preventDefault();
+                l.onClick();
               } else {
-                onNavigate?.(); // regular link closes menu if mobile
+                onNavigate?.();
               }
             }}
           >

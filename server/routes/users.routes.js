@@ -8,6 +8,7 @@ import {
   findUser,
   loginUser,
   changeUserRole,
+  forgotPassword,
 } from "../controllers/users.controller.js";
 
 const r = Router();
@@ -15,6 +16,7 @@ const r = Router();
 // specific first
 r.get("/find/user", findUser); // /api/users/find/user?username=... OR ?email=...
 r.post("/login", loginUser); // /api/users/login
+r.post("/forgot-password", forgotPassword);
 
 // base CRUD
 r.get("/", getAllUsers);

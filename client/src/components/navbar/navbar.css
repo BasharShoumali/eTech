@@ -199,3 +199,15 @@
     text-decoration: none;
   }
 }
+.nav__center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.welcome-text {
+  font-weight: bold;
+  font-size: 1rem;
+  color: var(--text, #7cc7b8);
+}

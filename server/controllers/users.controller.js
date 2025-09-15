@@ -17,6 +17,54 @@ const ALLOWED = [
   "address",
 ];
 
+export async function forgotPassword(req, res) {
+  try {
+    const { email, phoneNumber, userID } = req.body || {};
+
+    if (!email || !phoneNumber || !userID) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    // Find matching user
+    const [rows] = await pool.query(
+      `SELECT userNumber, userName FROM users WHERE email = ? AND phoneNumber = ? AND userID = ? LIMIT 1`,
+      [email, phoneNumber, userID]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const user = rows[0];
+    const tempPassword = generateTempPassword();
+    const hashed = await bcrypt.hash(tempPassword, 10);
+
+    // Update DB with new hashed password
+    await pool.query(
+      `UPDATE users SET password_hash = ? WHERE userNumber = ?`,
+      [hashed, user.userNumber]
+    );
+
+    res.json({
+      userName: user.userName,
+      password: tempPassword, // ✅ plain password for UI
+    });
+  } catch (err) {
+    console.error("forgotPassword error:", err);
+    res.status(500).json({ error: err.message || "Server error" });
+  }
+}
+
+// helper
+function generateTempPassword(length = 10) {
+  const chars =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$";
+  return Array.from(
+    { length },
+    () => chars[Math.floor(Math.random() * chars.length)]
+  ).join("");
+}
+
 export async function getAllUsers(req, res) {
   const [rows] = await pool.query(`SELECT * FROM ${TABLE} ORDER BY ${ID} DESC`);
   // SECURITY NOTE: consider omitting password_hash in responses
