@@ -39,6 +39,7 @@ export async function updateCategory(req, res) {
   ]);
   res.json(rows[0]);
 }
+
 export async function deleteCategory(req, res) {
   const [r] = await pool.execute(`DELETE FROM ${TABLE} WHERE ${ID}=?`, [
     req.params.id,

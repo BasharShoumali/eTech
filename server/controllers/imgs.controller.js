@@ -9,6 +9,7 @@ export async function getAllImgs(req, res) {
   const [rows] = await pool.query(`SELECT * FROM ${TABLE} ORDER BY ${ID} DESC`);
   res.json(rows);
 }
+
 export async function getImgById(req, res) {
   const [rows] = await pool.query(`SELECT * FROM ${TABLE} WHERE ${ID}=?`, [
     req.params.id,
@@ -16,6 +17,7 @@ export async function getImgById(req, res) {
   if (!rows.length) return res.status(404).json({ error: "Not found" });
   res.json(rows[0]);
 }
+
 export async function createImg(req, res) {
   const data = pick(req.body, ALLOWED);
   const { sql, params } = buildInsert(TABLE, data);
@@ -25,6 +27,7 @@ export async function createImg(req, res) {
   ]);
   res.status(201).json(rows[0]);
 }
+
 export async function updateImg(req, res) {
   const data = pick(req.body, ALLOWED);
   const b = buildUpdate(TABLE, data, ID);
@@ -36,10 +39,30 @@ export async function updateImg(req, res) {
   ]);
   res.json(rows[0]);
 }
+
 export async function deleteImg(req, res) {
   const [r] = await pool.execute(`DELETE FROM ${TABLE} WHERE ${ID}=?`, [
     req.params.id,
   ]);
   if (!r.affectedRows) return res.status(404).json({ error: "Not found" });
   res.json({ ok: true });
+}
+
+// get all images for a specific product
+export async function getImgsByProduct(req, res) {
+  const { productNumber } = req.params;
+  const [rows] = await pool.query(
+    `SELECT * FROM ${TABLE} WHERE productNumber=? ORDER BY ${ID} DESC`,
+    [productNumber]
+  );
+  res.json(rows);
+}
+
+// delete all images for a specific product
+export async function deleteImgsByProduct(req, res) {
+  const { productNumber } = req.params;
+  const [r] = await pool.execute(`DELETE FROM ${TABLE} WHERE productNumber=?`, [
+    productNumber,
+  ]);
+  res.json({ ok: true, deleted: r.affectedRows });
 }
