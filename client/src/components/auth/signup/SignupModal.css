@@ -1,0 +1,144 @@
+.fieldRow {
+  display: flex;
+  justify-content: space-between; /* pushes label left, input right */
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.fieldRow span {
+  text-align: right;
+  color: var(--text);
+  margin-right: 12px; /* spacing between label and input */
+  white-space: nowrap;
+}
+
+.fieldRow input,
+.fieldRow select {
+  width: 255px; /* fixed width for inputs */
+  padding: 8px 10px;
+  background: #121212;
+  color: var(--text);
+  border: 1px solid var(--nav-border);
+  border-radius: 8px;
+}
+
+.fieldRow input:focus,
+.fieldRow select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+/* make react-datepicker input match your inputs */
+.dateInput {
+  width: 255px;
+  padding: 8px 10px;
+  background: #121212;
+  color: var(--text);
+  border: 1px solid var(--nav-border);
+  border-radius: 8px;
+}
+.dateInput:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* keep your fieldRow layout from earlier */
+.fieldRow {
+  display: flex;
+  justify-content: space-between;  /* label left, input right end */
+  align-items: center;
+  margin-bottom: 10px;
+}
+.fieldRow span {
+  text-align: right;
+  color: var(--text);
+  margin-right: 12px;
+  white-space: nowrap;
+}
+.dateInput {
+  width: 255px;
+  background: #121212;
+  color: var(--text);
+}
+.MuiInputBase-input {
+  color: var(--text) !important;
+}
+.MuiOutlinedInput-root {
+  border-radius: 8px;
+}
+.dateInput {
+  width: 255px !important;
+  background: #121212;
+  color: var(--text);
+}
+
+.MuiInputBase-input {
+  color: var(--text) !important;
+  padding: 6px 10px !important;
+  font-size: 0.9rem !important;
+}
+
+.MuiOutlinedInput-root {
+  border-radius: 8px !important;
+  height: 36px !important; /* makes the field smaller */
+}
+
+/* Input field: already compact & dark */
+.dateInput {
+  width: 255px !important;
+}
+.dateInput .MuiOutlinedInput-root {
+  background: #121212;
+  color: var(--text);
+  border-radius: 8px !important;
+  height: 36px !important;
+}
+.dateInput .MuiOutlinedInput-notchedOutline { border-color: var(--nav-border); }
+.dateInput:hover .MuiOutlinedInput-notchedOutline { border-color: #2a2a2a; }
+.dateInput .MuiOutlinedInput-input {
+  color: var(--text) !important;
+  padding: 6px 10px !important;
+  font-size: 0.9rem !important;
+}
+
+/* Ensure the popup appears above your modal and is readable in dark theme */
+.MuiPickersPopper-root { z-index: 1400; }               /* above your modal */
+.MuiPickersPopper-root .MuiPaper-root {
+  background: #0f0f0f !important;
+  color: var(--text) !important;
+  border: 1px solid var(--nav-border);
+}
+
+/* Header (month/year label + arrows) */
+.MuiPickersCalendarHeader-label { color: var(--text) !important; }
+.MuiPickersArrowSwitcher-button { color: var(--text) !important; }
+
+/* YEAR VIEW: make year buttons visible */
+.MuiYearCalendar-root .MuiPickersYear-yearButton {
+  color: var(--text) !important;
+  border-radius: 10px;
+}
+.MuiYearCalendar-root .Mui-selected {
+  background: var(--accent) !important;
+  color: #000 !important;
+}
+
+/* MONTH VIEW: month buttons */
+.MuiMonthCalendar-root .MuiPickersMonth-monthButton {
+  color: var(--text) !important;
+  border-radius: 10px;
+}
+.MuiMonthCalendar-root .Mui-selected {
+  background: var(--accent) !important;
+  color: #000 !important;
+}
+
+/* DAY VIEW: days */
+.MuiDayCalendar-weekDayLabel { color: var(--text-dim) !important; }
+.MuiPickersDay-root { color: var(--text) !important; }
+.MuiPickersDay-root.Mui-selected {
+  background: var(--accent) !important;
+  color: #000 !important;
+}
+
+/* Avoid parent containers clipping the popper */
+.modalCard { overflow: visible; } /* in case it was hidden */

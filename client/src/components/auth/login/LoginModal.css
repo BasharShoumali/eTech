@@ -1,0 +1,122 @@
+/* --- Modal basics --- */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: grid;
+  place-items: center;
+  z-index: 100;
+}
+.modalCard {
+  width: min(92vw, 420px);
+  background: #0f0f0f;
+  color: var(--text);
+  border: 1px solid var(--nav-border);
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  display: grid;
+  gap: 14px;
+}
+.modalHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.iconBtn {
+  border: 1px solid var(--nav-border);
+  background: #121212;
+  color: var(--text);
+  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.iconBtn:hover {
+  background: #171717;
+}
+
+.form {
+  display: grid;
+  gap: 12px;
+}
+.field {
+  display: grid;
+  gap: 6px;
+}
+.field input {
+  background: #121212;
+  color: var(--text);
+  border: 1px solid var(--nav-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.field input:focus {
+  outline: none;
+  border-color: #2a2a2a;
+}
+.primaryBtn {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.primaryBtn:hover {
+  filter: brightness(0.95);
+}
+.modalTitle {
+  margin: 0 auto; /* center horizontally */
+  text-align: center; /* center text */
+  flex: 1; /* push close button to the right */
+  font-size: 1.5rem;
+}
+
+.modalFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+  text-align: center;
+}
+
+.linkBtn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  text-decoration: underline;
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.linkBtn:hover {
+  color: #fff;
+}
+.modalFooter {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.secondaryBtn {
+  background: transparent;
+  border: 1px solid var(--nav-border);
+  color: var(--accent);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.secondaryBtn:hover {
+  background: #171717;
+  border-color: var(--accent);
+  color: #fff;
+}
