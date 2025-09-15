@@ -1,5 +1,6 @@
 import { pool } from "../db.js";
 import { pick, buildInsert, buildUpdate } from "../helpers/sql.js";
+import bcrypt from "bcryptjs";
 
 const TABLE = "users";
 const ID = "userNumber";
@@ -14,7 +15,6 @@ const ALLOWED = [
   "userRole",
   "dateOfBirth",
   "address",
-  "created",
 ];
 
 export async function getAllUsers(req, res) {
@@ -35,14 +35,80 @@ export async function getUserById(req, res) {
 }
 
 export async function createUser(req, res) {
-  const data = pick(req.body, ALLOWED);
-  const { sql, params } = buildInsert(TABLE, data);
-  const [r] = await pool.execute(sql, params);
-  const [rows] = await pool.query(`SELECT * FROM ${TABLE} WHERE ${ID}=?`, [
-    r.insertId,
-  ]);
-  delete rows[0].password_hash;
-  res.status(201).json(rows[0]);
+  try {
+    const { password, confirmPassword, ...rest } = req.body || {};
+
+    // Validate required fields
+    if (!rest.userName || !rest.email || !password) {
+      return res
+        .status(400)
+        .json({ error: "userName, email, and password are required" });
+    }
+
+    // Optional double-check on password match
+    if (confirmPassword != null && password !== confirmPassword) {
+      return res.status(400).json({ error: "Passwords do not match" });
+    }
+
+    // Check for duplicate username or email
+    const [[dup]] = await pool.query(
+      `SELECT userName, email FROM ${TABLE} WHERE userName = ? OR email = ? LIMIT 1`,
+      [rest.userName, rest.email]
+    );
+
+    if (dup) {
+      if (dup.userName === rest.userName)
+        return res.status(409).json({ error: "Username already taken" });
+      if (dup.email === rest.email)
+        return res.status(409).json({ error: "Email already registered" });
+    }
+
+    // Hash password using bcrypt (cost factor 10)
+    const password_hash = await bcrypt.hash(password, 10);
+
+    // Whitelist user fields (REMOVE the invalid 'created' field)
+    const ALLOWED = [
+      "firstName",
+      "lastName",
+      "userName",
+      "email",
+      "phoneNumber",
+      "userID",
+      "userRole",
+      "dateOfBirth",
+      "address",
+    ];
+
+    const data = pick(rest, ALLOWED);
+    data.password_hash = password_hash;
+
+    // Default role
+    if (!["user", "admin"].includes(data.userRole)) {
+      data.userRole = "user";
+    }
+
+    // Build and run insert query
+    const { sql, params } = buildInsert(TABLE, data);
+    const [result] = await pool.execute(sql, params);
+
+    // Fetch the created user
+    const [[user]] = await pool.query(
+      `SELECT * FROM ${TABLE} WHERE ${ID} = ?`,
+      [result.insertId]
+    );
+
+    if (!user) {
+      return res
+        .status(500)
+        .json({ error: "User creation failed unexpectedly" });
+    }
+
+    delete user.password_hash;
+    res.status(201).json(user);
+  } catch (e) {
+    console.error("createUser error:", e); // ✅ Better error context
+    res.status(500).json({ error: e.message || "createUser failed" });
+  }
 }
 
 export async function updateUser(req, res) {
@@ -82,9 +148,6 @@ export async function findUser(req, res) {
   if (!rows.length) return res.status(404).json({ error: "Not found" });
   res.json(rows[0]);
 }
-// LOGIN: usernameOrEmail + password -> verify with bcrypt, return sanitized user
-// npm i bcryptjs
-import bcrypt from "bcryptjs";
 
 export async function loginUser(req, res) {
   const { usernameOrEmail, password } = req.body;

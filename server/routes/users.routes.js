@@ -12,18 +12,16 @@ import {
 
 const r = Router();
 
+// specific first
+r.get("/find/user", findUser); // /api/users/find/user?username=... OR ?email=...
+r.post("/login", loginUser); // /api/users/login
+
 // base CRUD
 r.get("/", getAllUsers);
-r.get("/:id", getUserById);
 r.post("/", createUser);
+r.get("/:id", getUserById);
 r.put("/:id", updateUser);
 r.delete("/:id", deleteUser);
-
-// search (for login UI, no password hash)
-r.get("/find/user", findUser); // /api/users/find/user?username=foo OR ?email=bar@x.com
-
-// login (server verifies password with bcrypt)
-r.post("/login", loginUser);
 
 // change role
 r.patch("/:id/role", changeUserRole);

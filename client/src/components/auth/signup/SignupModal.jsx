@@ -4,17 +4,60 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import "./SignupModal.css";
 
+// base API
+const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
 export default function SignupModal({ open, onClose, onOpenLogin }) {
-  // Hooks MUST be before any return
   const [dob, setDob] = useState(null);
   const [showPwd, setShowPwd] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
   if (!open) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: handle signup (read form fields from e.target or a form lib)
+    const fd = new FormData(e.currentTarget);
+
+    const payload = {
+      firstName: fd.get("firstName")?.trim(),
+      lastName: fd.get("lastName")?.trim(),
+      userName: fd.get("userName")?.trim(),
+      email: fd.get("email")?.trim(),
+      password: fd.get("password"), // plain; server hashes
+      confirmPassword: fd.get("confirmPassword"), // optional (client check)
+      phoneNumber: fd.get("phoneNumber")?.trim(),
+      userID: fd.get("userID")?.trim(),
+      dateOfBirth: fd.get("dateOfBirth") || "", // "yyyy-MM-dd"
+      address: fd.get("address")?.trim(),
+    };
+
+    if (payload.password !== payload.confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API}/api/users`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `Signup failed (${res.status})`);
+      }
+
+      await res.json(); // <-- removed unused variable; ESLint ok
+
+      // optional: save user locally, then close + go to login
+      // localStorage.setItem("user", JSON.stringify(user));
+      onClose?.();
+      onOpenLogin?.(); // open login after successful signup
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Signup failed");
+    }
   };
 
   // format Date -> "yyyy-MM-dd" for backend
@@ -138,12 +181,11 @@ export default function SignupModal({ open, onClose, onOpenLogin }) {
                     className: "dateInput",
                     placeholder: "YYYY-MM-DD",
                   },
-                  popper: { className: "datePopper" }, // readable popup in dark
+                  popper: { className: "datePopper" },
                 }}
                 maxDate={new Date()}
               />
             </LocalizationProvider>
-            {/* submit formatted date */}
             <input type="hidden" name="dateOfBirth" value={formatDate(dob)} />
           </div>
 
