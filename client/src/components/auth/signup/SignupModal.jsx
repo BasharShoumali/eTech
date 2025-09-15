@@ -7,6 +7,8 @@ import "./SignupModal.css";
 export default function SignupModal({ open, onClose, onOpenLogin }) {
   // Hooks MUST be before any return
   const [dob, setDob] = useState(null);
+  const [showPwd, setShowPwd] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   if (!open) return null;
 
@@ -19,11 +21,18 @@ export default function SignupModal({ open, onClose, onOpenLogin }) {
   const formatDate = (d) => (d ? new Date(d).toISOString().slice(0, 10) : "");
 
   return (
-    <div className="modalOverlay" role="dialog" aria-modal="true" aria-label="Create account dialog">
+    <div
+      className="modalOverlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Create account dialog"
+    >
       <div className="modalCard">
         <header className="modalHead">
           <h2 className="modalTitle">Create account</h2>
-          <button className="iconBtn" aria-label="Close" onClick={onClose}>✕</button>
+          <button className="iconBtn" aria-label="Close" onClick={onClose}>
+            ✕
+          </button>
         </header>
 
         <form className="form" onSubmit={handleSubmit}>
@@ -39,22 +48,68 @@ export default function SignupModal({ open, onClose, onOpenLogin }) {
 
           <div className="fieldRow">
             <span>Username</span>
-            <input type="text" name="userName" required placeholder="johndoe123" />
+            <input
+              type="text"
+              name="userName"
+              required
+              placeholder="johndoe123"
+            />
           </div>
 
           <div className="fieldRow">
             <span>Email</span>
-            <input type="email" name="email" required placeholder="you@example.com" />
+            <input
+              type="email"
+              name="email"
+              required
+              placeholder="you@example.com"
+            />
           </div>
 
           <div className="fieldRow">
             <span>Password</span>
-            <input type="password" name="password" required minLength={6} placeholder="••••••••" />
+            <div className="passWrap">
+              <input
+                type={showPwd ? "text" : "password"}
+                name="password"
+                required
+                minLength={6}
+                placeholder="••••••••"
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                className="eyeBtn"
+                onClick={() => setShowPwd((v) => !v)}
+                aria-label={showPwd ? "Hide password" : "Show password"}
+                title={showPwd ? "Hide password" : "Show password"}
+              >
+                {showPwd ? "🙈" : "👁️"}
+              </button>
+            </div>
           </div>
 
           <div className="fieldRow">
             <span>Confirm Password</span>
-            <input type="password" name="confirmPassword" required minLength={6} placeholder="••••••••" />
+            <div className="passWrap">
+              <input
+                type={showConfirm ? "text" : "password"}
+                name="confirmPassword"
+                required
+                minLength={6}
+                placeholder="••••••••"
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                className="eyeBtn"
+                onClick={() => setShowConfirm((v) => !v)}
+                aria-label={showConfirm ? "Hide password" : "Show password"}
+                title={showConfirm ? "Hide password" : "Show password"}
+              >
+                {showConfirm ? "🙈" : "👁️"}
+              </button>
+            </div>
           </div>
 
           <div className="fieldRow">
@@ -76,13 +131,14 @@ export default function SignupModal({ open, onClose, onOpenLogin }) {
                 views={["year", "month", "day"]}
                 openTo="year"
                 format="yyyy-MM-dd"
-                // Make the input compact & 255px wide (styled via CSS class)
+                reduceAnimations
                 slotProps={{
                   textField: {
                     size: "small",
                     className: "dateInput",
-                    placeholder: "Select date",
+                    placeholder: "YYYY-MM-DD",
                   },
+                  popper: { className: "datePopper" }, // readable popup in dark
                 }}
                 maxDate={new Date()}
               />
@@ -96,7 +152,9 @@ export default function SignupModal({ open, onClose, onOpenLogin }) {
             <input type="text" name="address" placeholder="123 Main St" />
           </div>
 
-          <button className="primaryBtn" type="submit">Sign up</button>
+          <button className="primaryBtn" type="submit">
+            Sign up
+          </button>
         </form>
 
         <div className="modalFooter">

@@ -27,9 +27,10 @@
   outline: none;
   border-color: var(--accent);
 }
+
 /* make react-datepicker input match your inputs */
 .dateInput {
-  width: 255px;
+  width: 277px;
   padding: 8px 10px;
   background: #121212;
   color: var(--text);
@@ -44,7 +45,7 @@
 /* keep your fieldRow layout from earlier */
 .fieldRow {
   display: flex;
-  justify-content: space-between;  /* label left, input right end */
+  justify-content: space-between; /* label left, input right end */
   align-items: center;
   margin-bottom: 10px;
 }
@@ -92,8 +93,12 @@
   border-radius: 8px !important;
   height: 36px !important;
 }
-.dateInput .MuiOutlinedInput-notchedOutline { border-color: var(--nav-border); }
-.dateInput:hover .MuiOutlinedInput-notchedOutline { border-color: #2a2a2a; }
+.dateInput .MuiOutlinedInput-notchedOutline {
+  border-color: var(--nav-border);
+}
+.dateInput:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #2a2a2a;
+}
 .dateInput .MuiOutlinedInput-input {
   color: var(--text) !important;
   padding: 6px 10px !important;
@@ -101,7 +106,9 @@
 }
 
 /* Ensure the popup appears above your modal and is readable in dark theme */
-.MuiPickersPopper-root { z-index: 1400; }               /* above your modal */
+.MuiPickersPopper-root {
+  z-index: 1400;
+} /* above your modal */
 .MuiPickersPopper-root .MuiPaper-root {
   background: #0f0f0f !important;
   color: var(--text) !important;
@@ -109,8 +116,12 @@
 }
 
 /* Header (month/year label + arrows) */
-.MuiPickersCalendarHeader-label { color: var(--text) !important; }
-.MuiPickersArrowSwitcher-button { color: var(--text) !important; }
+.MuiPickersCalendarHeader-label {
+  color: var(--text) !important;
+}
+.MuiPickersArrowSwitcher-button {
+  color: var(--text) !important;
+}
 
 /* YEAR VIEW: make year buttons visible */
 .MuiYearCalendar-root .MuiPickersYear-yearButton {
@@ -133,12 +144,55 @@
 }
 
 /* DAY VIEW: days */
-.MuiDayCalendar-weekDayLabel { color: var(--text-dim) !important; }
-.MuiPickersDay-root { color: var(--text) !important; }
+.MuiDayCalendar-weekDayLabel {
+  color: var(--text-dim) !important;
+}
+.MuiPickersDay-root {
+  color: var(--text) !important;
+}
 .MuiPickersDay-root.Mui-selected {
   background: var(--accent) !important;
   color: #000 !important;
 }
 
 /* Avoid parent containers clipping the popper */
-.modalCard { overflow: visible; } /* in case it was hidden */
+.modalCard {
+  overflow: visible;
+}
+/* Password eye toggle — keep exact alignment with other fields */
+.passWrap {
+  position: relative;
+  display: inline-block; /* shrink to input width */
+}
+
+.passWrap input {
+  width: 277px; /* match other inputs */
+  box-sizing: border-box; /* include padding + border in width */
+  padding: 8px 38px 8px 10px; /* right space for eye button */
+  background: #121212;
+  color: var(--text);
+  border: 1px solid var(--nav-border);
+  border-radius: 8px;
+}
+
+.passWrap input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.eyeBtn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 2px;
+}
+
+.eyeBtn:hover {
+  filter: brightness(1.1);
+}

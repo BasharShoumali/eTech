@@ -120,3 +120,27 @@
   border-color: var(--accent);
   color: #fff;
 }
+
+.passwordWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.passwordWrapper input {
+  flex: 1;
+  padding-right: 38px; /* space for the eye button */
+}
+
+.toggleBtn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 2px;
+}

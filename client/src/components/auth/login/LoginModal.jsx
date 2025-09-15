@@ -1,17 +1,19 @@
+import { useState } from "react";
 import "./LoginModal.css";
 
 export default function LoginModal({
   open,
   onClose,
-  onOpenSignup, // <-- pass from Navbar
-  onOpenForgot, // <-- optional: pass if you have a forgot modal
+  onOpenSignup,
+  onOpenForgot,
 }) {
+  const [showPassword, setShowPassword] = useState(false);
+
   if (!open) return null;
 
   const closeOnBackdrop = (e) => {
     if (e.target === e.currentTarget) onClose?.();
   };
-
   const onKeyDown = (e) => {
     if (e.key === "Escape") onClose?.();
   };
@@ -34,21 +36,31 @@ export default function LoginModal({
           </button>
         </header>
 
-        <form
-          className="form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            // TODO: handle login
-          }}
-        >
+        <form className="form" onSubmit={(e) => e.preventDefault()}>
           <label className="field">
             <span>Email</span>
             <input type="email" required placeholder="you@example.com" />
           </label>
-          <label className="field">
+
+          <label className="field passwordField">
             <span>Password</span>
-            <input type="password" required placeholder="••••••••" />
+            <div className="passwordWrapper">
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                className="toggleBtn"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? "🙈" : "👁️"}
+              </button>
+            </div>
           </label>
+
           <button className="primaryBtn" type="submit">
             Sign in
           </button>
