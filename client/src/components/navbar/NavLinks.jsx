@@ -10,6 +10,7 @@ export default function NavLinks({
   const LINKS = [
     { to: "/products", label: "Products" },
     { to: "/cart", label: <CartIcon />, onClick: onOpenCart },
+    { to: "/account/update", label: "Update Profile" },
   ];
 
   // Add login or logout link depending on user status

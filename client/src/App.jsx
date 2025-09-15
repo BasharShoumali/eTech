@@ -1,13 +1,16 @@
 import React from "react";
 import Navbar from "./components/navbar/Navbar";
+import { Routes, Route } from "react-router-dom";
+import UpdateProfile from "./pages/updateProfile/UpdateProfile";
 
 export default function App() {
   return (
     <>
       <Navbar />
       <main>
-        <h1>Welcome to My App</h1>
-        <p>This is the starting point for your project.</p>
+        <Routes>
+          <Route path="/account/update" element={<UpdateProfile />} />
+        </Routes>
       </main>
     </>
   );
