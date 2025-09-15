@@ -1,28 +1,31 @@
 import { Router } from "express";
 import {
-  getAllPayments,
-  getPaymentById,
+  getPaymentsByUser,
+  getDefaultPaymentByUser,
   createPayment,
   updatePayment,
   deletePayment,
-  getPaymentsByUser,
-  getDefaultPaymentByUser,
   setDefaultPayment,
 } from "../controllers/paymentMethods.controller.js";
 
-const r = Router();
+const router = Router();
 
-r.get("/", getAllPayments);
-r.get("/:id", getPaymentById);
-r.post("/", createPayment);
-r.put("/:id", updatePayment);
-r.delete("/:id", deletePayment);
+// list all payment methods for a user
+router.get("/user/:userNumber", getPaymentsByUser);
 
-// user-scoped helpers
-r.get("/user/:userNumber", getPaymentsByUser);
-r.get("/user/:userNumber/default", getDefaultPaymentByUser);
+// get default payment method for a user
+router.get("/user/:userNumber/default", getDefaultPaymentByUser);
 
-// set default explicitly
-r.post("/:id/default", setDefaultPayment);
+// create a payment method
+router.post("/", createPayment);
 
-export default r;
+// update a payment method
+router.patch("/:id", updatePayment);
+
+// delete a payment method
+router.delete("/:id", deletePayment);
+
+// explicitly set a payment method as default
+router.post("/:id/default", setDefaultPayment);
+
+export default router;

@@ -9,7 +9,6 @@ const ALLOWED = [
   "cardNumber",
   "expiryMonth",
   "expiryYear",
-  // "cvv", // ❌ do not accept in production
   "billingAddress",
   "isDefault",
 ];
