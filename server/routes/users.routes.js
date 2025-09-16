@@ -9,6 +9,7 @@ import {
   loginUser,
   changeUserRole,
   forgotPassword,
+  changePassword,
 } from "../controllers/users.controller.js";
 
 const r = Router();
@@ -17,6 +18,9 @@ const r = Router();
 r.get("/find/user", findUser); // /api/users/find/user?username=... OR ?email=...
 r.post("/login", loginUser); // /api/users/login
 r.post("/forgot-password", forgotPassword);
+
+
+r.patch("/:id/password", changePassword);
 
 // base CRUD
 r.get("/", getAllUsers);
@@ -27,5 +31,4 @@ r.delete("/:id", deleteUser);
 
 // change role
 r.patch("/:id/role", changeUserRole);
-
 export default r;

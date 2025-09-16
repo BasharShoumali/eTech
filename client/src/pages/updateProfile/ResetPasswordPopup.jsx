@@ -3,63 +3,98 @@ import "./ResetPasswordPopup.css";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
+/** If your backend expects "newPassword", change this to "newPassword" */
+const PASSWORD_KEY = "password";
+
 export default function ResetPasswordPopup({ userID, onClose }) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [visible, setVisible] = useState(false);
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
 
-    if (password !== confirmPassword) {
-      setMessage("Passwords do not match.");
-      return;
-    }
+    if (!userID) return setMessage("Missing user ID. Please re-login.");
+    if (password !== confirmPassword) return setMessage("Passwords do not match.");
+    if (password.length < 8) return setMessage("Password must be at least 8 characters.");
 
+    setLoading(true);
     try {
-      const res = await fetch(`${API}/api/users/${userID}/reset-password`, {
-        method: "PUT",
+      const res = await fetch(`${API}/api/users/${userID}/password`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ [PASSWORD_KEY]: password }), // backend hashes this
       });
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "Password reset failed");
+        throw new Error(err.error || `Password update failed (${res.status})`);
       }
 
       setMessage("Password reset successfully!");
+      setPassword("");
+      setConfirmPassword("");
+      // Optionally close after 1s:
+      // setTimeout(onClose, 1000);
     } catch (error) {
-      setMessage(error.message);
+      setMessage(error.message || "Password update failed");
+    } finally {
+      setLoading(false);
     }
   };
+
+  // best-effort username for password managers (hidden)
+  const defaultUsername = (() => {
+    try {
+      const u = JSON.parse(localStorage.getItem("user") || "{}");
+      return u.userName || u.username || u.email || "";
+    } catch {
+      return "";
+    }
+  })();
 
   return (
     <div className="modalOverlay" role="dialog" aria-modal="true">
       <div className="modalCard">
         <header className="modalHead">
           <h2 className="modalTitle">Reset Password</h2>
-          <button className="iconBtn" onClick={onClose} aria-label="Close">
-            ✕
-          </button>
+          <button className="iconBtn" onClick={onClose} aria-label="Close" disabled={loading}>✕</button>
         </header>
 
-        <form className="form" onSubmit={handleSubmit}>
+        <form className="form" onSubmit={handleSubmit} autoComplete="off">
+          {/* Hidden username field to satisfy Chrome/password managers */}
+          <input
+            type="text"
+            name="username"
+            autoComplete="username"
+            defaultValue={defaultUsername}
+            tabIndex={-1}
+            aria-hidden="true"
+            style={{ position: "absolute", left: "-9999px", height: 0, width: 0, opacity: 0 }}
+          />
+
           <label className="field">
             New Password
             <div className="passwordField">
               <input
                 type={visible ? "text" : "password"}
+                name="new-password"
+                autoComplete="new-password"
+                minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={loading}
               />
               <button
                 type="button"
                 className="eyeBtn"
-                onClick={() => setVisible((v) => !v)}
+                onClick={() => setVisible(v => !v)}
+                aria-label={visible ? "Hide password" : "Show password"}
+                disabled={loading}
               >
                 {visible ? "🙈" : "👁️"}
               </button>
@@ -70,14 +105,18 @@ export default function ResetPasswordPopup({ userID, onClose }) {
             Confirm Password
             <input
               type={visible ? "text" : "password"}
+              name="confirm-new-password"
+              autoComplete="new-password"
+              minLength={8}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
+              disabled={loading}
             />
           </label>
 
-          <button className="primaryBtn" type="submit">
-            Reset Password
+          <button className="primaryBtn" type="submit" disabled={loading}>
+            {loading ? "Updating…" : "Reset Password"}
           </button>
           {message && <p className="updateMessage">{message}</p>}
         </form>

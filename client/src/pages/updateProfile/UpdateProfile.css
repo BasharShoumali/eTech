@@ -1,30 +1,42 @@
 .updateProfilePage {
-  max-width: 500px;
+  max-width: 540px;
   margin: 30px auto;
   padding: 20px;
 }
 
-.updateMessage {
-  margin-top: 12px;
-  color: #7cc7b8;
-  font-weight: bold;
+.form {
+  display: grid;
+  gap: 16px;
 }
+
+.updateMessage {
+  margin-top: 8px;
+  color: #7cc7b8;
+  font-weight: 600;
+}
+
+/* Each field line */
 .fieldRow {
   display: flex;
+  flex-direction: column; /* label on top */
+  gap: 8px;
+}
+
+/* Label above the input+button */
+.fieldLabel {
+  font-weight: 500;
+  color: #7cc7b8;
+}
+
+/* Input + Update button sit side-by-side and align nicely */
+.inputGroup {
+  display: flex;
   align-items: center;
-  margin-bottom: 20px;
   gap: 10px;
 }
 
-.fieldRow label {
+.inputGroup input {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  font-weight: 500;
-  color: #ccc;
-}
-
-.fieldRow input {
   padding: 10px 12px;
   font-size: 1rem;
   background-color: #121212;
@@ -34,44 +46,123 @@
   width: 100%;
 }
 
-.inlineBtn {
+/* Buttons */
+.miniBtn {
   padding: 10px 14px;
   font-size: 0.9rem;
-  background-color: #2a645b;
-  color: white;
   border: none;
   border-radius: 8px;
+  background: var(--accent, #2a645b);
+  color: #000; /* ← black text */
   cursor: pointer;
-  height: 42px;
-  margin-left: 10px;
-
-  /* This aligns it vertically center with input */
-  align-self: flex-end;
-  margin-bottom: 4px;
+  transition: background 0.2s;
+  font-weight: 600; /* optional: make text bolder */
 }
 
-.inlineBtn:hover {
-  background-color: #388e7d;
+.miniBtn:hover {
+  background: #59aa9b;
 }
-.passwordField {
-  position: relative;
+
+.actionsRow {
   display: flex;
-  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.passwordField input {
-  width: 100%;
-  padding-right: 40px; /* space for eye icon */
-}
-
-.eyeBtn {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
+.primaryBtn,
+.secondaryBtn {
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  border-radius: 10px;
+  border: 1px solid var(--nav-border, #2c2c2c);
   cursor: pointer;
-  font-size: 18px;
-  color: #999;
+  transition: 0.2s;
+}
+
+.primaryBtn {
+  background: var(--accent, #2a645b);
+  color: #000;
+  border: none;
+}
+.primaryBtn:hover {
+  background: #59aa9b;
+}
+
+.secondaryBtn {
+  background: transparent;
+  color: #ddd;
+}
+.secondaryBtn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Small screens: keep layout clean */
+@media (max-width: 520px) {
+  .inputGroup {
+    gap: 8px;
+  }
+  .miniBtn {
+    white-space: nowrap;
+  }
+}
+.updateProfilePage {
+  min-height: 100vh; /* take full height */
+  display: flex; /* use flex for centering */
+  flex-direction: column; /* stack heading + form */
+  justify-content: center; /* center vertically */
+  align-items: center; /* center horizontally */
+  padding: 20px;
+  gap: 20px; /* space between title & form */
+  text-align: center; /* center title text */
+}
+
+.form {
+  width: 100%;
+  max-width: 540px;
+  display: grid;
+  gap: 16px;
+}
+
+/* center the bottom buttons */
+.actionsRow {
+  display: flex;
+  justify-content: center; /* center horizontally */
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+/* generic buttons in the form rows (no color here) */
+.updateProfilePage .form .fieldRow button {
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+/* small Update button text = black */
+.updateProfilePage .form .fieldRow .miniBtn {
+  color: #000;
+  font-weight: 600;
+}
+
+/* keep bottom buttons styled separately */
+.primaryBtn {
+  color: #fff;
+}
+.secondaryBtn {
+  color: #ddd;
+}
+/* Make only Update + Update All buttons have black text */
+.updateProfilePage .miniBtn,
+.updateProfilePage .primaryBtn {
+  color: #000 !important;
+  font-weight: 600;
+}
+
+/* Keep Reset Password white */
+.updateProfilePage .secondaryBtn {
+  color: #fff !important;
 }

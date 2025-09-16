@@ -17,6 +17,25 @@ const ALLOWED = [
   "address",
 ];
 
+export async function changePassword(req, res) {
+  const id = Number(req.params.id);
+  const { password, newPassword } = req.body || {};
+  const plain = (newPassword ?? password ?? "").trim();
+  if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: "Invalid user id" });
+  if (!plain || plain.length < 8) return res.status(400).json({ error: "Password must be at least 8 chars" });
+
+  const password_hash = await bcrypt.hash(plain, 10);
+  const [r] = await pool.execute(
+    "UPDATE users SET password_hash=? WHERE userNumber=?",
+    [password_hash, id]
+  );
+  if (!r.affectedRows) return res.status(404).json({ error: "Not found" });
+  res.json({ ok: true });
+}
+
+
+
+
 export async function forgotPassword(req, res) {
   try {
     const { email, phoneNumber, userID } = req.body || {};

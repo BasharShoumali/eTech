@@ -1,15 +1,27 @@
-// src/pages/account/UpdateProfile.jsx
 import { useEffect, useState } from "react";
 import "./UpdateProfile.css";
 import ResetPasswordPopup from "./ResetPasswordPopup";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
+/** Return a numeric ID string (userNumber/id/_id/userID) or null */
+const getNumericId = (u) => {
+  const candidates = [u?.userNumber, u?.id, u?._id, u?.userID];
+  for (const c of candidates) {
+    if (c == null) continue;
+    const s = String(c);
+    if (/^\d+$/.test(s)) return s; // only digits allowed
+  }
+  return null;
+};
+
 export default function UpdateProfile() {
   const savedUser = localStorage.getItem("user");
   const [user, setUser] = useState(() =>
     savedUser ? JSON.parse(savedUser) : null
   );
+
+  const uid = getNumericId(user);
 
   const [form, setForm] = useState({
     firstName: "",
@@ -40,15 +52,19 @@ export default function UpdateProfile() {
   };
 
   const updateField = async (field) => {
-    if (!user) return;
+    if (!uid) {
+      setMessage("User numeric ID missing — please re-login.");
+      return;
+    }
     try {
-      const res = await fetch(`${API}/api/users/${user.userID}`, {
+      const res = await fetch(`${API}/api/users/${uid}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ [field]: form[field] }),
       });
       if (!res.ok) throw new Error("Failed to update " + field);
       const updatedUser = await res.json();
+
       localStorage.setItem("user", JSON.stringify(updatedUser));
       setUser(updatedUser);
       setMessage(`${field} updated successfully!`);
@@ -59,15 +75,19 @@ export default function UpdateProfile() {
   };
 
   const handleUpdateAll = async () => {
-    if (!user) return;
+    if (!uid) {
+      setMessage("User numeric ID missing — please re-login.");
+      return;
+    }
     try {
-      const res = await fetch(`${API}/api/users/${user.userID}`, {
+      const res = await fetch(`${API}/api/users/${uid}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
       if (!res.ok) throw new Error("Update failed");
       const updatedUser = await res.json();
+
       localStorage.setItem("user", JSON.stringify(updatedUser));
       setUser(updatedUser);
       setMessage("All fields updated successfully!");
@@ -82,53 +102,64 @@ export default function UpdateProfile() {
   return (
     <div className="updateProfilePage">
       <h2>Update Profile</h2>
+
       <form className="form" onSubmit={(e) => e.preventDefault()}>
         {[
-          { label: "First Name", name: "firstName" },
-          { label: "Last Name", name: "lastName" },
-          { label: "Email", name: "email" },
-          { label: "Phone Number", name: "phoneNumber" },
-          { label: "Address", name: "address" },
-        ].map(({ label, name }) => (
+          { label: "First Name", name: "firstName", type: "text" },
+          { label: "Last Name", name: "lastName", type: "text" },
+          { label: "Email", name: "email", type: "email" },
+          { label: "Phone Number", name: "phoneNumber", type: "tel" },
+          { label: "Address", name: "address", type: "text" },
+        ].map(({ label, name, type }) => (
           <div className="fieldRow" key={name}>
-            <label className="field">
+            <label className="fieldLabel" htmlFor={name}>
               {label}
+            </label>
+
+            <div className="inputGroup">
               <input
-                type="text"
+                id={name}
+                type={type}
                 name={name}
                 value={form[name]}
                 onChange={handleChange}
                 required
               />
-            </label>
-            <button
-              type="button"
-              className="miniBtn"
-              onClick={() => updateField(name)}
-            >
-              Update
-            </button>
+              <button
+                type="button"
+                className="miniBtn"
+                onClick={() => updateField(name)}
+              >
+                Update
+              </button>
+            </div>
           </div>
         ))}
 
-        <button className="primaryBtn" type="button" onClick={handleUpdateAll}>
-          Update All
-        </button>
+        <div className="actionsRow">
+          <button
+            className="primaryBtn"
+            type="button"
+            onClick={handleUpdateAll}
+          >
+            Update All
+          </button>
 
-        <button
-          className="secondaryBtn"
-          type="button"
-          onClick={() => setShowPasswordPopup(true)}
-        >
-          Reset Password
-        </button>
+          <button
+            className="secondaryBtn"
+            type="button"
+            onClick={() => setShowPasswordPopup(true)}
+          >
+            Reset Password
+          </button>
+        </div>
 
         {message && <p className="updateMessage">{message}</p>}
       </form>
 
       {showPasswordPopup && (
         <ResetPasswordPopup
-          userID={user.userID}
+          userID={uid} // numeric-only id
           onClose={() => setShowPasswordPopup(false)}
         />
       )}
