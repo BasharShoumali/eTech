@@ -1,0 +1,197 @@
+/* Page layout */
+.adminPage {
+  max-width: 1100px;
+  margin: 24px auto;
+  padding: 16px;
+}
+
+.adminHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.adminHeader h1 {
+  margin: 0;
+  font-weight: 700;
+}
+
+.adminActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Buttons */
+.accentBtn {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  background: var(--accent, #2a645b);
+  color: #000;               /* per your request, black text for add buttons */
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s, transform .05s;
+}
+.accentBtn:hover { background: #59aa9b; }
+.accentBtn:active { transform: translateY(1px); }
+
+.ghostBtn {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--nav-border, #2c2c2c);
+  background: transparent;
+  color: #ddd;
+  cursor: pointer;
+  transition: background .2s, transform .05s;
+}
+.ghostBtn:hover { background: rgba(255,255,255,.06); }
+.ghostBtn:active { transform: translateY(1px); }
+
+.toast {
+  color: #7cc7b8;
+  font-weight: 600;
+}
+
+/* Modals */
+.modalOverlay {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;                /* instead of grid */
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 12px;                /* some padding on smaller screens */
+  overflow: auto;               /* allow scroll if content too big */
+}
+
+.modalCard {
+  background: #121212;
+  color: var(--text, #ddd);
+  border-radius: 20px;
+  padding: 22px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+
+  width: 100%;
+  max-width: 820px;             /* desktop max width */
+  max-height: 90vh;             /* so it never exceeds screen height */
+  overflow-y: auto;             /* inner scroll if content is too tall */
+  display: flex;
+  flex-direction: column;
+}
+
+.modalHead {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.modalTitle { margin: 0; font-size: 1.3rem; }
+
+.iconBtn {
+  background: transparent;
+  border: none;
+  color: #aaa;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* Form */
+.form {
+  display: grid;
+  gap: 14px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  font-weight: 500;
+  color: #ccc;
+}
+
+.field input, .field textarea, .twoCol input, .twoCol textarea {
+  padding: 10px 12px;
+  font-size: 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--nav-border, #2c2c2c);
+  background: #1e1e1e;
+  color: var(--text, #ddd);
+}
+
+.twoCol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.formMsg {
+  margin: 4px 0 0;
+  color: #ff9b9b;
+  font-weight: 600;
+}
+
+/* Small screens */
+@media (max-width: 560px) {
+  .twoCol { grid-template-columns: 1fr; }
+}
+/* widen product modal a bit */
+.modalCard.wide { width: min(92vw, 820px); }
+
+.fieldRowBetween {
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.muted { color: #aaa; }
+
+.imagePreviewGrid {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 8px;
+}
+.imagePreviewGrid img {
+  width: 100%; height: 90px; object-fit: cover;
+  border-radius: 10px; border: 1px solid var(--nav-border, #2c2c2c);
+}
+
+.threeCol {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.descGrid {
+  display: grid;
+  gap: 10px;
+}
+.descRow {
+  display: grid;
+  grid-template-columns: 1fr 2fr auto;
+  gap: 8px;
+}
+.descRow textarea { resize: vertical; }
+
+.ghostBtn.danger { border-color: #7b2b2b; color: #ffb4b4; }
+.ghostBtn.danger:hover { background: rgba(255, 72, 72, 0.08); }
+
+@media (max-width: 720px) {
+  .threeCol { grid-template-columns: 1fr; }
+  .descRow { grid-template-columns: 1fr; }
+  .modalCard {
+    max-width: 100%;
+    border-radius: 12px;
+  }
+  .twoCol, .threeCol {
+    grid-template-columns: 1fr;  /* stack columns */
+  }
+  .descRow {
+    grid-template-columns: 1fr;  /* stack desc rows */
+  }
+}
