@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import Brand from "./Brand.jsx";
 import NavLinks from "./NavLinks.jsx";
 import MobileToggle from "./MobileToggle.jsx";
@@ -8,19 +9,28 @@ import SignupModal from "../auth/signup/SignupModal.jsx";
 import ForgotPasswordModal from "../auth/forgetPassword/ForgotPasswordModal.jsx";
 import "./navbar.css";
 
+function getStoredUser() {
+  try {
+    return JSON.parse(localStorage.getItem("user") || "null");
+  } catch {
+    return null;
+  }
+}
+
 export default function Navbar() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [openMenu, setOpenMenu] = useState(false);
   const [openLogin, setOpenLogin] = useState(false);
   const [openSignup, setOpenSignup] = useState(false);
   const [openForgot, setOpenForgot] = useState(false);
 
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem("user");
-    return saved ? JSON.parse(saved) : null;
-  });
+  const [user, setUser] = useState(getStoredUser());
 
   const handleNavigate = () => setOpenMenu(false);
   const handleToggleMenu = () => setOpenMenu((v) => !v);
+
   const openLoginModal = () => {
     setOpenMenu(false);
     setOpenSignup(false);
@@ -40,9 +50,10 @@ export default function Navbar() {
     localStorage.removeItem("user");
     setUser(null);
     setOpenMenu(false);
+    window.dispatchEvent(new Event("user:logout"));
   };
 
-  // lock body scroll when any popup is open
+  // Lock body scroll when any popup is open
   useEffect(() => {
     const anyOpen = openMenu || openLogin || openSignup || openForgot;
     document.body.style.overflow = anyOpen ? "hidden" : "";
@@ -51,19 +62,66 @@ export default function Navbar() {
     };
   }, [openMenu, openLogin, openSignup, openForgot]);
 
+  // Sync user state with localStorage & custom events
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === "user") setUser(getStoredUser());
+    };
+    const onUserChange = () => setUser(getStoredUser());
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("user:login", onUserChange);
+    window.addEventListener("user:logout", onUserChange);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("user:login", onUserChange);
+      window.removeEventListener("user:logout", onUserChange);
+    };
+  }, []);
+
+  // --- Logo click logic ---
+  const handleLogoClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (user?.userRole === "admin") {
+      if (location.pathname === "/admin/home") {
+        navigate("/"); // already on admin → go to user home
+      } else {
+        navigate("/admin/home"); // not on admin → go to admin home
+      }
+    } else {
+      navigate("/"); // normal users → always user home
+    }
+  };
+
+  const onLogoKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleLogoClick(e);
+    }
+  };
+
   return (
     <header className="nav">
       <div className="nav__container">
-        <Brand />
+        {/* Logo click wrapper */}
+        <div
+          className="nav__brandClickable"
+          role="link"
+          tabIndex={0}
+          onClick={handleLogoClick}
+          onKeyDown={onLogoKeyDown}
+          aria-label="Go home"
+        >
+          <Brand />
+        </div>
 
-        {/* Welcome center */}
         {user && (
           <div className="nav__center hide-on-mobile">
             <span className="welcome-text">Welcome, {user.userName}</span>
           </div>
         )}
 
-        {/* Right side links (desktop) */}
         <div className="nav__right hide-on-mobile">
           <nav className="nav__links" aria-label="Primary">
             <NavLinks
@@ -76,11 +134,9 @@ export default function Navbar() {
           </nav>
         </div>
 
-        {/* mobile toggle */}
         <MobileToggle open={openMenu} onToggle={handleToggleMenu} />
       </div>
 
-      {/* mobile dropdown under navbar */}
       <MobileMenu open={openMenu} onClose={() => setOpenMenu(false)}>
         <NavLinks
           user={user}
@@ -91,7 +147,6 @@ export default function Navbar() {
         />
       </MobileMenu>
 
-      {/* popups */}
       <LoginModal
         open={openLogin}
         onClose={() => setOpenLogin(false)}

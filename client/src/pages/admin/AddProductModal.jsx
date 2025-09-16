@@ -12,12 +12,24 @@ export default function AddProductModal({ API, onClose, onCreated }) {
     inStock: "",
   });
   const [categories, setCategories] = useState([]);
-  const [images, setImages] = useState([]);               // File[] (multiple)
-  const [descs, setDescs] = useState([{ title: "", text: "" }]); // dynamic rows
+  const [images, setImages] = useState([]); // File[]
+  const [descs, setDescs] = useState([{ title: "", text: "" }]);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
 
-  // load categories for select
+  // Close on ESC
+  useEffect(() => {
+    const onKey = (e) => e.key === "Escape" && onClose?.();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  // Close when clicking backdrop
+  const handleBackdrop = (e) => {
+    if (e.target === e.currentTarget) onClose?.();
+  };
+
+  // Load categories
   useEffect(() => {
     (async () => {
       try {
@@ -30,14 +42,8 @@ export default function AddProductModal({ API, onClose, onCreated }) {
     })();
   }, [API]);
 
-  const previews = useMemo(
-    () => images.map((f) => URL.createObjectURL(f)),
-    [images]
-  );
-
-  useEffect(() => {
-    return () => previews.forEach((u) => URL.revokeObjectURL(u));
-  }, [previews]);
+  const previews = useMemo(() => images.map((f) => URL.createObjectURL(f)), [images]);
+  useEffect(() => () => previews.forEach((u) => URL.revokeObjectURL(u)), [previews]);
 
   const onChange = (e) => {
     const { name, value } = e.target;
@@ -58,21 +64,26 @@ export default function AddProductModal({ API, onClose, onCreated }) {
   };
 
   const addDescRow = () => setDescs((d) => [...d, { title: "", text: "" }]);
-  const removeDescRow = (idx) =>
-    setDescs((d) => d.filter((_, i) => i !== idx));
+  const removeDescRow = (idx) => setDescs((d) => d.filter((_, i) => i !== idx));
+
+  const safeJson = async (res) => {
+    try { return await res.json(); } catch { return null; }
+  };
 
   const submit = async (e) => {
     e.preventDefault();
     setMsg("");
 
     if (!form.productName.trim()) return setMsg("Product name is required");
-    if (!form.sellingPrice || Number(form.sellingPrice) < 0) return setMsg("Selling price must be >= 0");
-    if (form.buyingPrice && Number(form.buyingPrice) < 0) return setMsg("Buying price must be >= 0");
+    if (!form.sellingPrice || Number(form.sellingPrice) < 0)
+      return setMsg("Selling price must be >= 0");
+    if (form.buyingPrice && Number(form.buyingPrice) < 0)
+      return setMsg("Buying price must be >= 0");
 
     setLoading(true);
     try {
-      // 1) Create product (products)
-      const res = await fetch(`${API}/api/products`, {
+      // 1) Create product
+      const createRes = await fetch(`${API}/api/products`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -85,33 +96,41 @@ export default function AddProductModal({ API, onClose, onCreated }) {
           inStock: form.inStock ? Number(form.inStock) : 0,
         }),
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || `Product create failed (${res.status})`);
+      if (!createRes.ok) {
+        const err = (await safeJson(createRes)) || {};
+        throw new Error(err.error || `Product create failed (${createRes.status})`);
       }
-      const created = await res.json();
-      // Expect backend to return the created product with productNumber
-      const productNumber = created?.productNumber ?? created?.product?.productNumber ?? created?.id;
+      const created = await createRes.json();
+      const productNumber =
+        created?.productNumber ??
+        created?.product?.productNumber ??
+        created?.id ??
+        created?.insertId;
       if (!productNumber) throw new Error("Server did not return productNumber");
 
-      // 2) Upload images (imgs) — multiple -> POST /api/products/:productNumber/images
+      // 2) Upload images (optional)
       if (images.length) {
         const fd = new FormData();
-        images.forEach((file, idx) => {
-          fd.append("images", file);                  // backend reads req.files('images')
-          fd.append("indexes", String(idx + 1));      // optional: imgNumberOfProduct
-        });
+        images.forEach((file) => fd.append("images", file)); // field name MUST be "images"
+
+        // Optional: pass categoryName so files go under /assets/imgs/<categoryName>/
+        const category = categories.find(
+          (c) => Number(c.categoryNumber) === Number(form.categoryNumber)
+        );
+        if (category?.categoryName) {
+          fd.append("categoryName", category.categoryName);
+        }
         const imgRes = await fetch(`${API}/api/products/${productNumber}/images`, {
           method: "POST",
-          body: fd,
+          body: fd, // do NOT set Content-Type manually
         });
         if (!imgRes.ok) {
-          const err = await imgRes.json().catch(() => ({}));
+          const err = (await safeJson(imgRes)) || {};
           throw new Error(err.error || `Images upload failed (${imgRes.status})`);
         }
       }
 
-      // 3) Create descriptions (descriptions) — bulk -> POST /api/products/:productNumber/descriptions
+      // 3) Create descriptions (optional)
       const cleanDescs = descs
         .map((d) => ({ title: d.title.trim(), text: d.text.trim() }))
         .filter((d) => d.title || d.text);
@@ -122,13 +141,13 @@ export default function AddProductModal({ API, onClose, onCreated }) {
           body: JSON.stringify({ descriptions: cleanDescs }),
         });
         if (!dRes.ok) {
-          const err = await dRes.json().catch(() => ({}));
+          const err = (await safeJson(dRes)) || {};
           throw new Error(err.error || `Descriptions create failed (${dRes.status})`);
         }
       }
 
       onCreated?.();
-      onClose();
+      onClose?.();
     } catch (e) {
       setMsg(e.message || "Save failed");
     } finally {
@@ -137,11 +156,19 @@ export default function AddProductModal({ API, onClose, onCreated }) {
   };
 
   return (
-    <div className="modalOverlay" role="dialog" aria-modal="true">
+    <div
+      className="modalOverlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="New Product"
+      onClick={handleBackdrop}
+    >
       <div className="modalCard wide">
         <header className="modalHead">
           <h2 className="modalTitle">New Product</h2>
-          <button className="iconBtn" onClick={onClose} aria-label="Close" disabled={loading}>✕</button>
+          <button className="iconBtn" onClick={onClose} aria-label="Close" disabled={loading}>
+            ✕
+          </button>
         </header>
 
         <form className="form" onSubmit={submit}>
@@ -177,11 +204,24 @@ export default function AddProductModal({ API, onClose, onCreated }) {
           <div className="threeCol">
             <label className="field">
               Buying Price
-              <input name="buyingPrice" type="number" step="0.01" value={form.buyingPrice} onChange={onChange} />
+              <input
+                name="buyingPrice"
+                type="number"
+                step="0.01"
+                value={form.buyingPrice}
+                onChange={onChange}
+              />
             </label>
             <label className="field">
               Selling Price
-              <input name="sellingPrice" type="number" step="0.01" value={form.sellingPrice} onChange={onChange} required />
+              <input
+                name="sellingPrice"
+                type="number"
+                step="0.01"
+                value={form.sellingPrice}
+                onChange={onChange}
+                required
+              />
             </label>
             <label className="field">
               In Stock
@@ -209,7 +249,9 @@ export default function AddProductModal({ API, onClose, onCreated }) {
           <div className="field">
             <div className="fieldRowBetween">
               <span>Descriptions</span>
-              <button type="button" className="ghostBtn" onClick={addDescRow}>+ Add row</button>
+              <button type="button" className="ghostBtn" onClick={addDescRow}>
+                + Add row
+              </button>
             </div>
 
             <div className="descGrid">
@@ -226,7 +268,11 @@ export default function AddProductModal({ API, onClose, onCreated }) {
                     value={d.text}
                     onChange={(e) => updateDesc(i, "text", e.target.value)}
                   />
-                  <button type="button" className="ghostBtn danger" onClick={() => removeDescRow(i)}>
+                  <button
+                    type="button"
+                    className="ghostBtn danger"
+                    onClick={() => removeDescRow(i)}
+                  >
                     Remove
                   </button>
                 </div>

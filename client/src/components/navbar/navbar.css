@@ -211,3 +211,6 @@
   font-size: 1rem;
   color: var(--text, #7cc7b8);
 }
+/* navbar.css */
+.nav__brandClickable { cursor: pointer; outline: none; }
+.nav__brandClickable:focus-visible { outline: 2px solid var(--accent, #2a645b); border-radius: 8px; }

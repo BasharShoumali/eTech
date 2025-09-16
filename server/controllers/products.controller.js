@@ -13,6 +13,7 @@ const ALLOWED = [
   "inStock",
 ];
 
+// --- core CRUD ---
 export async function getAllProducts(req, res) {
   const [rows] = await pool.query(`SELECT * FROM ${TABLE} ORDER BY ${ID} DESC`);
   res.json(rows);
@@ -75,7 +76,7 @@ export async function getProductsByCategory(req, res) {
   res.json(rows);
 }
 
-// --- partial updates (PATCH-style) ---
+// --- patch updates ---
 export async function updateBarcode(req, res) {
   const barcode = String(req.body.barcode || "").trim();
   if (!barcode) return res.status(400).json({ error: "barcode required" });
@@ -134,7 +135,6 @@ export async function updateStock(req, res) {
   res.json(row);
 }
 
-// --- decrement stock by one (atomic) ---
 export async function decrementStock(req, res) {
   const [r] = await pool.execute(
     `UPDATE ${TABLE}
@@ -143,7 +143,6 @@ export async function decrementStock(req, res) {
     [req.params.id]
   );
   if (!r.affectedRows) {
-    // either not found or stock already 0
     const [[exists]] = await pool.query(
       `SELECT ${ID}, inStock FROM ${TABLE} WHERE ${ID}=?`,
       [req.params.id]
@@ -155,4 +154,120 @@ export async function decrementStock(req, res) {
     req.params.id,
   ]);
   res.json(row);
+}
+
+// --- images ---
+export async function uploadProductImages(req, res, next, err) {
+  if (err) {
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({ error: err.message, code: err.code });
+    }
+    return next(err);
+  }
+
+  try {
+    const productId = Number(req.params.id);
+    if (!Number.isInteger(productId)) {
+      return res.status(400).json({ error: "invalid id" });
+    }
+    if (!req.files?.length) {
+      return res.status(400).json({ error: "No images uploaded" });
+    }
+
+    const subdir = (req._imagesSubdir || "").replaceAll("\\", "/");
+    const files = req.files.map((f, idx) => ({
+      file_name: f.filename,
+      url: `/assets/imgs/${subdir}/${f.filename}`,
+      sort_order: idx,
+    }));
+
+    const placeholders = files.map(() => "(?,?,?,?)").join(",");
+    const params = files.flatMap((f) => [productId, f.file_name, f.url, f.sort_order]);
+
+    await pool.query(
+      `INSERT INTO product_images (product_id, file_name, url, sort_order)
+       VALUES ${placeholders}`,
+      params
+    );
+
+    return res.status(201).json({
+      uploaded: true,
+      files: files.map((f) => f.url),
+    });
+  } catch (e) {
+    if (e?.code === "ER_NO_REFERENCED_ROW_2") {
+      return res.status(400).json({ error: "product not found (FK)", code: e.code });
+    }
+    next(e);
+  }
+}
+
+export async function getProductImages(req, res, next) {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) return res.status(400).json({ error: "invalid id" });
+
+    const [rows] = await pool.query(
+      `SELECT image_id AS id, file_name, url
+         FROM product_images
+        WHERE product_id = ?
+        ORDER BY sort_order, image_id`,
+      [id]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    next(err);
+  }
+}
+
+// --- descriptions ---
+export async function postProductDescriptions(req, res, next) {
+  try {
+    const productId = Number(req.params.id);
+    if (!Number.isInteger(productId)) {
+      return res.status(400).json({ error: "invalid id" });
+    }
+
+    const items = Array.isArray(req.body?.descriptions) ? req.body.descriptions : [];
+    const rows = items
+      .map(({ title = "", text = "" }) => ({
+        title: title.trim(),
+        text: text.trim(),
+      }))
+      .filter((d) => d.title || d.text);
+
+    if (rows.length === 0) return res.status(400).json({ error: "no descriptions" });
+
+    const placeholders = rows.map(() => "(?,?,?)").join(",");
+    const params = rows.flatMap((d) => [productId, d.title || null, d.text || null]);
+
+    await pool.query(
+      `INSERT INTO product_descriptions (product_id, title, text) VALUES ${placeholders}`,
+      params
+    );
+
+    return res.status(201).json({ created: rows.length });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getProductDescriptions(req, res, next) {
+  try {
+    const productId = Number(req.params.id);
+    if (!Number.isInteger(productId)) return res.status(400).json({ error: "invalid id" });
+
+    const [rows] = await pool.query(
+      `SELECT id, title, text
+         FROM product_descriptions
+        WHERE product_id = ? 
+        ORDER BY sort_order, id`,
+      [productId]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    next(err);
+  }
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./AdminsPage.css";
 
 export default function AddCategoryModal({ API, onClose, onCreated }) {
@@ -6,10 +6,23 @@ export default function AddCategoryModal({ API, onClose, onCreated }) {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
 
+  // Close on Escape
+  useEffect(() => {
+    const onKey = (e) => e.key === "Escape" && onClose?.();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  // Close when clicking the backdrop (but not the card)
+  const handleBackdrop = (e) => {
+    if (e.target === e.currentTarget) onClose?.();
+  };
+
   const submit = async (e) => {
     e.preventDefault();
     setMsg("");
     if (!categoryName.trim()) return setMsg("Category name is required");
+
     setLoading(true);
     try {
       const res = await fetch(`${API}/api/categories`, {
@@ -22,7 +35,7 @@ export default function AddCategoryModal({ API, onClose, onCreated }) {
         throw new Error(err.error || `Create failed (${res.status})`);
       }
       onCreated?.();
-      onClose();
+      onClose?.();
     } catch (e) {
       setMsg(e.message || "Create failed");
     } finally {
@@ -31,25 +44,47 @@ export default function AddCategoryModal({ API, onClose, onCreated }) {
   };
 
   return (
-    <div className="modalOverlay" role="dialog" aria-modal="true">
+    <div
+      className="modalOverlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="New Category"
+      onClick={handleBackdrop}
+    >
       <div className="modalCard">
         <header className="modalHead">
           <h2 className="modalTitle">New Category</h2>
-          <button className="iconBtn" onClick={onClose} aria-label="Close" disabled={loading}>✕</button>
+          <button
+            type="button"
+            className="iconBtn"
+            onClick={onClose}
+            aria-label="Close"
+            disabled={loading}
+          >
+            ✕
+          </button>
         </header>
 
-        <form className="form" onSubmit={submit}>
+        <form className="form" onSubmit={submit} autoComplete="off">
           <label className="field">
             Category Name
             <input
               value={categoryName}
               onChange={(e) => setCategoryName(e.target.value)}
               required
+              autoFocus
             />
           </label>
 
           <div className="modalActions">
-            <button type="button" className="ghostBtn" onClick={onClose} disabled={loading}>Cancel</button>
+            <button
+              type="button"
+              className="ghostBtn"
+              onClick={onClose}
+              disabled={loading}
+            >
+              Cancel
+            </button>
             <button type="submit" className="accentBtn" disabled={loading}>
               {loading ? "Saving…" : "Create"}
             </button>

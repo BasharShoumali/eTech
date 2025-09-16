@@ -1,8 +1,9 @@
+import { Link } from "react-router-dom";
 import "./navbar.css";
 
-export default function Brand() {
+export default function Brand({ to = "/" }) {
   return (
-    <a href="/" className="brand" aria-label="E-Tech Home">
+    <Link to={to} className="brand" aria-label="E-Tech Home">
       <img
         src="/assets/logos/E-square-logo.png"
         alt="E-Tech"
@@ -12,6 +13,6 @@ export default function Brand() {
         }}
       />
       <span className="brand__name">E-Tech</span>
-    </a>
+    </Link>
   );
 }
