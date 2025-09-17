@@ -17,12 +17,18 @@ const r = Router();
 /* ========= Multer Setup ========= */
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const raw = String(req.body?.categoryName || "misc").trim();
-    const safe = raw.replace(/[^a-z0-9-_]/gi, "_").toLowerCase();
-    const dir = path.resolve("public", "assets", "imgs", "categories", safe);
-    fs.mkdirSync(dir, { recursive: true });
-    req._categorySubdir = `categories/${safe}`; // so controller builds correct URL
-    cb(null, dir);
+    try {
+      // ✅ Use categoryName passed in form data instead of DB query
+      const name = String(req.body?.categoryName || "misc").trim();
+      const safe = name.replace(/[^a-z0-9-_]/gi, "_").toLowerCase();
+      const dir = path.resolve("public", "assets", "imgs", "categories", safe);
+      fs.mkdirSync(dir, { recursive: true });
+      req._categorySubdir = `categories/${safe}`; // for image URL construction
+      cb(null, dir);
+    } catch (err) {
+      console.error("Multer destination error:", err);
+      cb(err);
+    }
   },
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname);
@@ -34,19 +40,19 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB max
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
 });
 
-/* ========= Category Routes ========= */
+/* ========= Routes ========= */
 
-// GET all or one
+// Read
 r.get("/", getAllCategories);
 r.get("/:id", getCategoryById);
 
-// CREATE a new category
+// Create
 r.post("/", createCategory);
 
-// PATCH name (safe)
+// Update
 r.patch("/:id", async (req, res, next) => {
   req.body = { categoryName: String(req.body.categoryName || "").trim() };
   if (!req.body.categoryName) {
@@ -55,10 +61,10 @@ r.patch("/:id", async (req, res, next) => {
   return updateCategory(req, res, next);
 });
 
-// DELETE
+// Delete
 r.delete("/:id", deleteCategory);
 
-// ✅ Upload image for category
+// Upload image — ⚠️ must include categoryName in FormData
 r.post("/:id/image", upload.single("image"), uploadCategoryImage);
 
 export default r;

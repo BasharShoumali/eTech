@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import "./UsersSection.css";
-import SearchBar from "../components/SearchBar";
+import SearchBar from "../components/searchBar/SearchBar";
 
 export default function UsersSection({ API, currentUser }) {
   const [rows, setRows] = useState([]);
@@ -147,7 +147,7 @@ export default function UsersSection({ API, currentUser }) {
   return (
     <section className="card usersSection">
       <div className="cardHead">
-        <h3>Users</h3>
+        <h2>Users</h2>
         <small className="muted">
           {filtered.length}/{rows.length} shown
         </small>

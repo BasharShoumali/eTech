@@ -1,3 +1,6 @@
+/* ============================
+   CATEGORY TABLE + IMAGE
+============================ */
 .categoriesSection .table .thumb {
   width: 50px;
   height: 50px;
@@ -6,6 +9,9 @@
   border: 1px solid #333;
 }
 
+/* ============================
+   INLINE EDIT INPUT
+============================ */
 .inlineInput {
   background: #1e1e1e;
   color: #eee;
@@ -15,13 +21,93 @@
   border-radius: 6px;
   width: 100%;
 }
-
 .inlineInput:focus {
   outline: none;
   border-color: #22c55e;
 }
 
+/* ============================
+   FILE INPUT STYLING
+============================ */
 input[type="file"] {
   font-size: 13px;
   color: #ccc;
+}
+.uploadBtn.small:hover {
+  background: #59aa9b; /* match .accentBtn:hover */
+}
+
+/* ============================
+   DELETE CONFIRM MODAL
+============================ */
+.confirmModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: grid;
+  place-items: center;
+  z-index: 100;
+  animation: fadeIn 0.15s ease;
+}
+
+.confirmModal {
+  background: var(--surface, #1e1e1e);
+  color: var(--text, #e5e5e5);
+  border: 1px solid var(--nav-border, #333);
+  border-radius: 14px;
+  padding: 24px;
+  width: 95%;
+  max-width: 400px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+.confirmModal h4 {
+  margin-top: 0;
+  font-size: 20px;
+}
+.confirmModal .modalActions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* ============================
+   BUTTON STYLING (REUSED)
+============================ */
+.confirmModal .accentBtn {
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--accent, #2a645b);
+  color: #000;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+.confirmModal .accentBtn:hover {
+  background: #59aa9b;
+}
+
+.confirmModal .ghostBtn {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--nav-border, #2c2c2c);
+  background: transparent;
+  color: #ddd;
+  cursor: pointer;
+}
+.confirmModal .ghostBtn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ============================
+   ANIMATIONS
+============================ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

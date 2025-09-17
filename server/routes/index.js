@@ -12,9 +12,8 @@ r.use("/users", users);
 r.use("/payments", payments);
 r.use("/orders", orders);
 r.use("/categories", categories);
-r.use("/imgs", imgs);
-r.use("/descriptions", descriptions);
 r.use("/products", productsRouter);
-
+r.use("/product-images", imgs); // DELETE /api/product-images/:id ✅
+r.use("/descriptions", descriptions);
 
 export default r;

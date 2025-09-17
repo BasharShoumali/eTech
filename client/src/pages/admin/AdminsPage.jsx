@@ -1,10 +1,13 @@
 // src/pages/admin/AdminsPage.jsx
 import { useMemo, useState } from "react";
 import "./AdminsPage.css";
+
 import AddProductModal from "./addProduct/AddProductModal.jsx";
 import AddCategoryModal from "./addCategory/AddCategoryModal.jsx";
+
 import UsersSection from "./usersSection/UsersSection.jsx";
 import CategoriesSection from "./categoriesSection/CategoriesSection.jsx";
+import ProductsSection from "./productsSection/ProductsSection.jsx";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
@@ -13,7 +16,7 @@ export default function AdminPage({ currentUser }) {
   const [showCategory, setShowCategory] = useState(false);
   const [toast, setToast] = useState("");
 
-  // fallback to localStorage if no prop provided
+  // Determine the current user from props or fallback to localStorage
   const me = useMemo(() => {
     if (currentUser) return currentUser;
     try {
@@ -44,10 +47,12 @@ export default function AdminPage({ currentUser }) {
 
       {toast && <p className="toast">{toast}</p>}
 
-      {/* ⬇️ pass the current user down */}
+      {/* Main Admin Sections */}
       <UsersSection API={API} currentUser={me} />
       <CategoriesSection API={API} />
+      <ProductsSection API={API} />
 
+      {/* Popups */}
       {showProduct && (
         <AddProductModal
           API={API}
@@ -55,7 +60,6 @@ export default function AdminPage({ currentUser }) {
           onCreated={() => handleCreated("Product created")}
         />
       )}
-
       {showCategory && (
         <AddCategoryModal
           API={API}

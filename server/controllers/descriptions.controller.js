@@ -4,7 +4,6 @@ import { pool } from "../db.js";
 const TABLE = "product_descriptions";
 const ID = "descriptionID";
 
-// helpers
 function toInt(v) {
   const n = Number(v);
   return Number.isInteger(n) ? n : NaN;
@@ -38,9 +37,12 @@ export async function getDescriptionById(req, res, next) {
   }
 }
 
+/**
+ * Bulk create endpoint
+ * Body: { productNumber: number, descriptions: [{title?:string, text?:string}, ...] }
+ */
 export async function createDescription(req, res, next) {
-  const conn = await pool.getConnection(); // get a dedicated connection
-
+  const conn = await pool.getConnection();
   try {
     const { productNumber, descriptions } = req.body;
 
@@ -53,7 +55,7 @@ export async function createDescription(req, res, next) {
       return res.status(400).json({ error: "valid productNumber required" });
     }
 
-    await conn.beginTransaction(); // start transaction
+    await conn.beginTransaction();
 
     const values = descriptions.map((d) => [
       pid,
@@ -66,14 +68,14 @@ export async function createDescription(req, res, next) {
       [values]
     );
 
-    await conn.commit(); // commit if all successful
+    await conn.commit();
     res.status(201).json({ ok: true });
   } catch (err) {
-    await conn.rollback(); // rollback on error
+    await conn.rollback();
     console.error("ERR POST /api/descriptions →", err);
     next(err);
   } finally {
-    conn.release(); // always release the connection
+    conn.release();
   }
 }
 
@@ -150,7 +152,6 @@ export async function deleteDescription(req, res, next) {
   }
 }
 
-// get all descriptions for a specific product
 export async function getDescriptionsByProduct(req, res, next) {
   try {
     const productNumber = toInt(req.params.productNumber);
@@ -170,7 +171,6 @@ export async function getDescriptionsByProduct(req, res, next) {
   }
 }
 
-// delete all descriptions for a specific product
 export async function deleteDescriptionsByProduct(req, res, next) {
   try {
     const productNumber = toInt(req.params.productNumber);

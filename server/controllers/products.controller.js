@@ -28,6 +28,35 @@ export async function getAllProducts(req, res, next) {
   }
 }
 
+export async function getAllProductsFull(req, res, next) {
+  try {
+    const [rows] = await pool.query(`
+      SELECT
+        p.productNumber,
+        p.productName,
+        p.barcode,
+        p.brand,
+        p.buyingPrice,
+        p.sellingPrice,
+        p.inStock,
+        p.categoryNumber,
+        c.categoryName,
+        i.url AS image
+      FROM products p
+      LEFT JOIN categories c ON p.categoryNumber = c.categoryNumber
+      LEFT JOIN (
+        SELECT product_id, MIN(url) AS url
+        FROM product_images
+        GROUP BY product_id
+      ) i ON p.productNumber = i.product_id
+      ORDER BY p.productNumber DESC
+    `);
+    res.json(rows);
+  } catch (e) {
+    next(e);
+  }
+}
+
 export async function getProductById(req, res, next) {
   try {
     const [rows] = await pool.query(`SELECT * FROM ${TABLE} WHERE ${ID}=?`, [

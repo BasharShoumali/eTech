@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "./SearchBar.css";
+
 /**
  * Reusable search input with tiny debounce.
  * Props:
@@ -25,6 +26,11 @@ export default function SearchBar({
     return () => clearTimeout(t);
   }, [local, delay, onChange]);
 
+  const clearInput = () => {
+    setLocal("");
+    onChange?.("");
+  };
+
   return (
     <div className="searchBar">
       <input
@@ -35,6 +41,16 @@ export default function SearchBar({
         placeholder={placeholder}
         disabled={disabled}
       />
+      {local && !disabled && (
+        <button
+          type="button"
+          className="clearBtn"
+          onClick={clearInput}
+          aria-label="Clear"
+        >
+          ✕
+        </button>
+      )}
       <span className="searchIcon" aria-hidden>
         🔎
       </span>

@@ -6,6 +6,7 @@ import path from "node:path";
 
 import {
   getAllProducts,
+  getAllProductsFull, // ✅ Added
   getProductById,
   createProduct,
   updateProduct,
@@ -18,7 +19,7 @@ import {
   decrementStock,
   uploadProductImages,
   getProductImages,
-} from "../controllers/products.controller.js"; // NOTE: .controller.js (singular)
+} from "../controllers/products.controller.js"; // ✅ NOTE: .controller.js (singular)
 
 const router = Router();
 
@@ -28,10 +29,9 @@ const storage = multer.diskStorage({
     const productId = String(req.params?.id || "").trim();
     const rawCategory = String(req.body?.categoryName || "").trim();
 
-    // If a category is provided, use it; otherwise bucket under /products/<id>
     const subdir = rawCategory
-      ? rawCategory.replace(/[^a-z0-9-_]/gi, "_").toLowerCase() // e.g. "phones"
-      : path.posix.join("products", productId || "misc"); // e.g. "products/21"
+      ? rawCategory.replace(/[^a-z0-9-_]/gi, "_").toLowerCase()
+      : path.posix.join("products", productId || "misc");
 
     const uploadDir = path.resolve(
       "public",
@@ -41,8 +41,7 @@ const storage = multer.diskStorage({
     );
     fs.mkdirSync(uploadDir, { recursive: true });
 
-    // Pass subdir to controller so it can build URLs consistently
-    req._imagesSubdir = subdir; // e.g. "phones" or "products/21"
+    req._imagesSubdir = subdir;
     cb(null, uploadDir);
   },
   filename: (_req, file, cb) => {
@@ -55,11 +54,10 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { files: 8, fileSize: 20 * 1024 * 1024 }, // up to 8 files, 20MB each
+  limits: { files: 8, fileSize: 20 * 1024 * 1024 }, // 20MB max per file
 });
 
 /* ========= Images ========= */
-// Use .fields so both "images" (files) and "categoryName" (text) are parsed together.
 router.post(
   "/:id/images",
   upload.fields([
@@ -79,10 +77,11 @@ router.patch("/:id/barcode", updateBarcode);
 router.patch("/:id/prices", updatePrices);
 router.patch("/:id/stock", updateStock);
 
-/* ========= Decrement stock ========= */
+/* ========= Stock decrement ========= */
 router.post("/:id/stock/decrement", decrementStock);
 
 /* ========= Base CRUD ========= */
+router.get("/full", getAllProductsFull); // ✅ Needs to be above `/:id`
 router.get("/", getAllProducts);
 router.get("/:id", getProductById);
 router.post("/", createProduct);
