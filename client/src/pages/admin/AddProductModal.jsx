@@ -24,7 +24,6 @@ export default function AddProductModal({ API, onClose, onCreated }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  // Close when clicking backdrop
   const handleBackdrop = (e) => {
     if (e.target === e.currentTarget) onClose?.();
   };
@@ -42,8 +41,14 @@ export default function AddProductModal({ API, onClose, onCreated }) {
     })();
   }, [API]);
 
-  const previews = useMemo(() => images.map((f) => URL.createObjectURL(f)), [images]);
-  useEffect(() => () => previews.forEach((u) => URL.revokeObjectURL(u)), [previews]);
+  const previews = useMemo(
+    () => images.map((f) => URL.createObjectURL(f)),
+    [images]
+  );
+  useEffect(
+    () => () => previews.forEach((u) => URL.revokeObjectURL(u)),
+    [previews]
+  );
 
   const onChange = (e) => {
     const { name, value } = e.target;
@@ -67,7 +72,11 @@ export default function AddProductModal({ API, onClose, onCreated }) {
   const removeDescRow = (idx) => setDescs((d) => d.filter((_, i) => i !== idx));
 
   const safeJson = async (res) => {
-    try { return await res.json(); } catch { return null; }
+    try {
+      return await res.json();
+    } catch {
+      return null;
+    }
   };
 
   const submit = async (e) => {
@@ -82,7 +91,7 @@ export default function AddProductModal({ API, onClose, onCreated }) {
 
     setLoading(true);
     try {
-      // 1) Create product
+      // 1) Create product -> get { productNumber }
       const createRes = await fetch(`${API}/api/products`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -90,7 +99,9 @@ export default function AddProductModal({ API, onClose, onCreated }) {
           productName: form.productName.trim(),
           barcode: form.barcode.trim() || null,
           brand: form.brand.trim() || null,
-          categoryNumber: form.categoryNumber ? Number(form.categoryNumber) : null,
+          categoryNumber: form.categoryNumber
+            ? Number(form.categoryNumber)
+            : null,
           buyingPrice: form.buyingPrice ? Number(form.buyingPrice) : null,
           sellingPrice: form.sellingPrice ? Number(form.sellingPrice) : null,
           inStock: form.inStock ? Number(form.inStock) : 0,
@@ -98,58 +109,60 @@ export default function AddProductModal({ API, onClose, onCreated }) {
       });
       if (!createRes.ok) {
         const err = (await safeJson(createRes)) || {};
-        throw new Error(err.error || `Product create failed (${createRes.status})`);
+        throw new Error(
+          err.error || `Product create failed (${createRes.status})`
+        );
       }
-      const created = await createRes.json();
-      const productNumber =
-        created?.productNumber ??
-        created?.product?.productNumber ??
-        created?.id ??
-        created?.insertId;
-      if (!productNumber) throw new Error("Server did not return productNumber");
+      const { productNumber } = await createRes.json();
+      if (!productNumber)
+        throw new Error("Server did not return productNumber");
 
       // 2) Upload images (optional)
       if (images.length) {
         const fd = new FormData();
-        images.forEach((file) => fd.append("images", file)); // field name MUST be "images"
-
-        // Optional: pass categoryName so files go under /assets/imgs/<categoryName>/
+        images.forEach((file) => fd.append("images", file)); // MUST match upload.array("images")
         const category = categories.find(
           (c) => Number(c.categoryNumber) === Number(form.categoryNumber)
         );
-        if (category?.categoryName) {
+        if (category?.categoryName)
           fd.append("categoryName", category.categoryName);
-        }
-        const imgRes = await fetch(`${API}/api/products/${productNumber}/images`, {
-          method: "POST",
-          body: fd, // do NOT set Content-Type manually
-        });
+        const imgRes = await fetch(
+          `${API}/api/products/${productNumber}/images`,
+          {
+            method: "POST",
+            body: fd, // do NOT set Content-Type manually
+          }
+        );
         if (!imgRes.ok) {
           const err = (await safeJson(imgRes)) || {};
-          throw new Error(err.error || `Images upload failed (${imgRes.status})`);
+          throw new Error(
+            err.error || `Images upload failed (${imgRes.status})`
+          );
         }
       }
 
-      // 3) Create descriptions (optional)
+      // 3) Create descriptions (optional) — via DescriptionsController
       const cleanDescs = descs
         .map((d) => ({ title: d.title.trim(), text: d.text.trim() }))
         .filter((d) => d.title || d.text);
+
       if (cleanDescs.length) {
-        const dRes = await fetch(`${API}/api/products/${productNumber}/descriptions`, {
+        const dRes = await fetch(`${API}/api/descriptions`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ descriptions: cleanDescs }),
+          body: JSON.stringify({ productNumber, descriptions: cleanDescs }),
         });
         if (!dRes.ok) {
           const err = (await safeJson(dRes)) || {};
-          throw new Error(err.error || `Descriptions create failed (${dRes.status})`);
+          throw new Error(
+            err.error || `Descriptions create failed (${dRes.status})`
+          );
         }
       }
-
       onCreated?.();
       onClose?.();
-    } catch (e) {
-      setMsg(e.message || "Save failed");
+    } catch (e2) {
+      setMsg(e2.message || "Save failed");
     } finally {
       setLoading(false);
     }
@@ -166,7 +179,12 @@ export default function AddProductModal({ API, onClose, onCreated }) {
       <div className="modalCard wide">
         <header className="modalHead">
           <h2 className="modalTitle">New Product</h2>
-          <button className="iconBtn" onClick={onClose} aria-label="Close" disabled={loading}>
+          <button
+            className="iconBtn"
+            onClick={onClose}
+            aria-label="Close"
+            disabled={loading}
+          >
             ✕
           </button>
         </header>
@@ -175,7 +193,12 @@ export default function AddProductModal({ API, onClose, onCreated }) {
           <div className="twoCol">
             <label className="field">
               Product Name
-              <input name="productName" value={form.productName} onChange={onChange} required />
+              <input
+                name="productName"
+                value={form.productName}
+                onChange={onChange}
+                required
+              />
             </label>
             <label className="field">
               Barcode
@@ -190,7 +213,11 @@ export default function AddProductModal({ API, onClose, onCreated }) {
             </label>
             <label className="field">
               Category
-              <select name="categoryNumber" value={form.categoryNumber} onChange={onChange}>
+              <select
+                name="categoryNumber"
+                value={form.categoryNumber}
+                onChange={onChange}
+              >
                 <option value="">— None —</option>
                 {categories.map((c) => (
                   <option key={c.categoryNumber} value={c.categoryNumber}>
@@ -225,7 +252,12 @@ export default function AddProductModal({ API, onClose, onCreated }) {
             </label>
             <label className="field">
               In Stock
-              <input name="inStock" type="number" value={form.inStock} onChange={onChange} />
+              <input
+                name="inStock"
+                type="number"
+                value={form.inStock}
+                onChange={onChange}
+              />
             </label>
           </div>
 
@@ -235,7 +267,12 @@ export default function AddProductModal({ API, onClose, onCreated }) {
               <span>Images</span>
               <small className="muted">You can select multiple</small>
             </div>
-            <input type="file" multiple accept="image/*" onChange={onSelectImages} />
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={onSelectImages}
+            />
             {previews.length > 0 && (
               <div className="imagePreviewGrid">
                 {previews.map((src, i) => (
@@ -281,7 +318,12 @@ export default function AddProductModal({ API, onClose, onCreated }) {
           </div>
 
           <div className="modalActions">
-            <button type="button" className="ghostBtn" onClick={onClose} disabled={loading}>
+            <button
+              type="button"
+              className="ghostBtn"
+              onClick={onClose}
+              disabled={loading}
+            >
               Cancel
             </button>
             <button type="submit" className="accentBtn" disabled={loading}>
