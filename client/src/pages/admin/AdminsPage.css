@@ -122,3 +122,6 @@
 .muted {
   color: #aaa;
 }
+.adminPage > section {
+  margin-top: 24px;
+}

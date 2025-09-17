@@ -4,6 +4,7 @@ import "./AdminsPage.css";
 import AddProductModal from "./addProduct/AddProductModal.jsx";
 import AddCategoryModal from "./addCategory/AddCategoryModal.jsx";
 import UsersSection from "./usersSection/UsersSection.jsx";
+import CategoriesSection from "./categoriesSection/CategoriesSection.jsx";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
@@ -45,6 +46,7 @@ export default function AdminPage({ currentUser }) {
 
       {/* ⬇️ pass the current user down */}
       <UsersSection API={API} currentUser={me} />
+      <CategoriesSection API={API} />
 
       {showProduct && (
         <AddProductModal
