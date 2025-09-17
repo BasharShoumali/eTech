@@ -21,8 +21,10 @@ export async function changePassword(req, res) {
   const id = Number(req.params.id);
   const { password, newPassword } = req.body || {};
   const plain = (newPassword ?? password ?? "").trim();
-  if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: "Invalid user id" });
-  if (!plain || plain.length < 8) return res.status(400).json({ error: "Password must be at least 8 chars" });
+  if (!Number.isInteger(id) || id <= 0)
+    return res.status(400).json({ error: "Invalid user id" });
+  if (!plain || plain.length < 8)
+    return res.status(400).json({ error: "Password must be at least 8 chars" });
 
   const password_hash = await bcrypt.hash(plain, 10);
   const [r] = await pool.execute(
@@ -32,9 +34,6 @@ export async function changePassword(req, res) {
   if (!r.affectedRows) return res.status(404).json({ error: "Not found" });
   res.json({ ok: true });
 }
-
-
-
 
 export async function forgotPassword(req, res) {
   try {
@@ -241,24 +240,73 @@ export async function loginUser(req, res) {
   delete user.password_hash; // never expose hashes
   res.json({ user });
 }
-// ROLE: change a user's role (user/admin) with validation
+// ROLE: change a user's role (user/admin) with password validation of the *current* user
 export async function changeUserRole(req, res) {
-  const role = String(req.body.userRole || "").toLowerCase();
-  if (!["user", "admin"].includes(role)) {
-    return res
-      .status(400)
-      .json({ error: "userRole must be 'user' or 'admin'" });
-  }
-  const [r] = await pool.execute(
-    `UPDATE ${TABLE} SET userRole=? WHERE ${ID}=?`,
-    [role, req.params.id]
-  );
-  if (!r.affectedRows) return res.status(404).json({ error: "Not found" });
+  try {
+    const targetId = Number(req.params.id);
+    const {
+      userRole, // "user" | "admin"
+      currentPassword, // plaintext password provided in modal
+      currentUsernameOrEmail, // who is confirming
+    } = req.body || {};
 
-  const [[row]] = await pool.query(
-    `SELECT ${ID}, firstName, lastName, userName, email, phoneNumber, userRole, userID, dateOfBirth, address, created
-     FROM ${TABLE} WHERE ${ID}=?`,
-    [req.params.id]
-  );
-  res.json(row);
+    if (!Number.isInteger(targetId) || targetId <= 0) {
+      return res.status(400).json({ error: "Invalid target user id" });
+    }
+    const nextRole = String(userRole || "").toLowerCase();
+    if (!["user", "admin"].includes(nextRole)) {
+      return res
+        .status(400)
+        .json({ error: "userRole must be 'user' or 'admin'" });
+    }
+    if (!currentPassword || !currentUsernameOrEmail) {
+      return res.status(400).json({
+        error: "currentPassword and currentUsernameOrEmail are required",
+      });
+    }
+
+    // 1) Load the current (confirming) user and verify password
+    const [confRows] = await pool.query(
+      `SELECT userNumber, userName, email, password_hash, userRole
+         FROM users
+        WHERE userName = ? OR email = ?
+        LIMIT 1`,
+      [currentUsernameOrEmail, currentUsernameOrEmail]
+    );
+    if (!confRows.length) {
+      return res.status(401).json({ error: "Invalid confirmer credentials" });
+    }
+    const confirmer = confRows[0];
+    const ok = await bcrypt.compare(
+      currentPassword,
+      confirmer.password_hash || ""
+    );
+    if (!ok)
+      return res.status(401).json({ error: "Invalid confirmer credentials" });
+
+    // (Optional) Prevent non-admins from promoting/demoting others
+    // if (confirmer.userRole !== "admin") {
+    //   return res.status(403).json({ error: "Only admins can change roles" });
+    // }
+
+    // 2) Update target role
+    const [r] = await pool.execute(
+      `UPDATE users SET userRole=? WHERE userNumber=?`,
+      [nextRole, targetId]
+    );
+    if (!r.affectedRows)
+      return res.status(404).json({ error: "Target user not found" });
+
+    // 3) Return updated target (without password hash)
+    const [[row]] = await pool.query(
+      `SELECT userNumber, firstName, lastName, userName, email, phoneNumber, userRole, userID, dateOfBirth, address, created_at
+         FROM users
+        WHERE userNumber = ?`,
+      [targetId]
+    );
+    return res.json(row);
+  } catch (err) {
+    console.error("changeUserRole error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
 }

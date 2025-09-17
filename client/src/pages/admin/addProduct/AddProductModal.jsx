@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import "./AdminsPage.css";
+import "../AdminsPage.css";
+import "./AddProductModal.css";
 
 export default function AddProductModal({ API, onClose, onCreated }) {
   const [form, setForm] = useState({

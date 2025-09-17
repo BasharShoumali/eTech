@@ -1,14 +1,26 @@
-import { useState } from "react";
+// src/pages/admin/AdminsPage.jsx
+import { useMemo, useState } from "react";
 import "./AdminsPage.css";
-import AddProductModal from "./AddProductModal.jsx";
-import AddCategoryModal from "./AddCategoryModal.jsx";
+import AddProductModal from "./addProduct/AddProductModal.jsx";
+import AddCategoryModal from "./addCategory/AddCategoryModal.jsx";
+import UsersSection from "./usersSection/UsersSection.jsx";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
-export default function AdminPage() {
+export default function AdminPage({ currentUser }) {
   const [showProduct, setShowProduct] = useState(false);
   const [showCategory, setShowCategory] = useState(false);
   const [toast, setToast] = useState("");
+
+  // fallback to localStorage if no prop provided
+  const me = useMemo(() => {
+    if (currentUser) return currentUser;
+    try {
+      return JSON.parse(localStorage.getItem("authUser") || "null");
+    } catch {
+      return null;
+    }
+  }, [currentUser]);
 
   const handleCreated = (msg = "Saved!") => {
     setToast(msg);
@@ -18,7 +30,7 @@ export default function AdminPage() {
   return (
     <div className="adminPage">
       <header className="adminHeader">
-        <h1>Admin</h1>
+        <h1 className="adminTitle">Welcome, Boss</h1>
         <div className="adminActions">
           <button className="accentBtn" onClick={() => setShowCategory(true)}>
             New Category
@@ -31,7 +43,8 @@ export default function AdminPage() {
 
       {toast && <p className="toast">{toast}</p>}
 
-      {/* Your admin content here (tables, stats, etc.) */}
+      {/* ⬇️ pass the current user down */}
+      <UsersSection API={API} currentUser={me} />
 
       {showProduct && (
         <AddProductModal

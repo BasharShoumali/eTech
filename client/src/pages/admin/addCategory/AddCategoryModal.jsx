@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import "./AdminsPage.css";
-
+import "../AdminsPage.css";
+import "./AddCategoryModal.css";
 export default function AddCategoryModal({ API, onClose, onCreated }) {
   const [categoryName, setCategoryName] = useState("");
   const [image, setImage] = useState(null); // File | null

@@ -1,0 +1,24 @@
+.searchBar {
+  position: relative;
+  display: inline-flex;
+  width: min(360px, 100%);
+}
+
+.searchInput {
+  width: 100%;
+  padding: 10px 36px 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--nav-border, #333);
+  background: #1e1e1e;
+  color: var(--text, #ddd);
+  font-size: 14px;
+}
+
+.searchIcon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.7;
+  pointer-events: none;
+}

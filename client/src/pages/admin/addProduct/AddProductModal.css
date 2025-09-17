@@ -1,0 +1,235 @@
+/* Modal shell */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  overflow: auto;
+  z-index: 1000;
+  overscroll-behavior: contain;
+}
+.modalCard {
+  background: #121212;
+  color: var(--text, #ddd);
+  border-radius: 20px;
+  padding: 22px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  width: auto;
+  max-width: 90vw;
+  max-height: min(90vh, calc(100dvh - 24px));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable both-edges;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.modalHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.modalTitle {
+  margin: 0;
+  font-size: 1.3rem;
+}
+.iconBtn {
+  background: transparent;
+  border: none;
+  color: #aaa;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* Form */
+.form {
+  display: grid;
+  gap: 14px;
+}
+.field {
+  display: grid;
+  gap: 6px;
+  font-weight: 500;
+  color: #ccc;
+}
+.field input,
+.field textarea,
+.twoCol input,
+.twoCol textarea {
+  padding: 10px 12px;
+  font-size: 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--nav-border, #2c2c2c);
+  background: #1e1e1e;
+  color: var(--text, #ddd);
+}
+.twoCol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.threeCol {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.formMsg {
+  margin: 4px 0 0;
+  color: #ff9b9b;
+  font-weight: 600;
+}
+
+/* Small screens */
+@media (max-width: 720px) {
+  .twoCol {
+    grid-template-columns: 1fr;
+  }
+  .modalCard {
+    max-width: 100%;
+    border-radius: 12px;
+  }
+}
+
+/* Helpers */
+.fieldRowBetween {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.muted {
+  color: #aaa;
+}
+
+/* Product-specific */
+.modalCard.wide {
+  width: 685px;
+  max-width: 95vw;
+  min-width: 520px;
+  max-height: min(90vh, calc(100dvh - 24px));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable both-edges;
+}
+@media (max-width: 700px) {
+  .modalCard.wide {
+    width: 95vw;
+    min-width: 0;
+    border-radius: 12px;
+  }
+}
+
+.imagePreviewGrid {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+}
+.previewItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.previewItem img {
+  width: 100%;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--nav-border, #2c2c2c);
+}
+.ghostBtn.small {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.descGrid {
+  display: grid;
+  gap: 10px;
+}
+.descRow {
+  display: grid;
+  grid-template-columns: 1fr 2fr auto;
+  gap: 8px;
+}
+.descRow textarea {
+  resize: vertical;
+}
+
+.ghostBtn.danger {
+  border-color: #7b2b2b;
+  color: #ffb4b4;
+}
+.ghostBtn.danger:hover {
+  background: rgba(255, 72, 72, 0.08);
+}
+
+/* Upload */
+.fileUpload {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+.uploadBtn {
+  display: inline-block;
+  background: var(--accent, #1a73e8);
+  color: black;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  user-select: none;
+}
+.uploadBtn:hover {
+  background: #155ab6;
+}
+.uploadBtn.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.modalCard {
+  background: #121212;
+  color: var(--text, #ddd);
+  border-radius: 20px;
+  padding: 22px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  width: auto;
+  max-width: 90vw;
+  max-height: min(90vh, calc(100dvh - 24px));
+  overflow-y: auto; /* Keep scrolling enabled */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable both-edges;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+
+  /* Hide scrollbar visually but keep scroll working */
+  -ms-overflow-style: none; /* IE 10+ */
+  scrollbar-width: none; /* Firefox */
+}
+.modalCard::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+@media (max-width: 720px) {
+  .twoCol,
+  .threeCol,
+  .descRow {
+    grid-template-columns: 1fr !important;
+  }
+
+  .descRow textarea {
+    min-height: 60px;
+  }
+}
