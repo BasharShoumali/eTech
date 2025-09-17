@@ -13,7 +13,10 @@
   margin-bottom: 16px;
 }
 
-.adminHeader h1 { margin: 0; font-weight: 700; }
+.adminHeader h1 {
+  margin: 0;
+  font-weight: 700;
+}
 
 .adminActions {
   display: flex;
@@ -30,10 +33,14 @@
   color: #000;
   font-weight: 600;
   cursor: pointer;
-  transition: background .2s, transform .05s;
+  transition: background 0.2s, transform 0.05s;
 }
-.accentBtn:hover { background: #59aa9b; }
-.accentBtn:active { transform: translateY(1px); }
+.accentBtn:hover {
+  background: #59aa9b;
+}
+.accentBtn:active {
+  transform: translateY(1px);
+}
 
 .ghostBtn {
   padding: 10px 14px;
@@ -42,23 +49,30 @@
   background: transparent;
   color: #ddd;
   cursor: pointer;
-  transition: background .2s, transform .05s;
+  transition: background 0.2s, transform 0.05s;
 }
-.ghostBtn:hover { background: rgba(255,255,255,.06); }
-.ghostBtn:active { transform: translateY(1px); }
+.ghostBtn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.ghostBtn:active {
+  transform: translateY(1px);
+}
 
-.toast { color: #7cc7b8; font-weight: 600; }
+.toast {
+  color: #7cc7b8;
+  font-weight: 600;
+}
 
 /* ---------- Modals (shared) ---------- */
 .modalOverlay {
-  position: fixed;        /* cover screen */
-  inset: 0;               /* top/right/bottom/left = 0 */
-  background: rgba(0,0,0,.6);
+  position: fixed; /* cover screen */
+  inset: 0; /* top/right/bottom/left = 0 */
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px;          /* keeps space around card on small screens */
-  overflow: auto;         /* if the card somehow exceeds the viewport */
+  padding: 12px; /* keeps space around card on small screens */
+  overflow: auto; /* if the card somehow exceeds the viewport */
   z-index: 1000;
   overscroll-behavior: contain; /* prevent background bounce on mobile */
 }
@@ -87,14 +101,28 @@
 }
 
 .modalHead {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 12px;
 }
-.modalTitle { margin: 0; font-size: 1.3rem; }
-.iconBtn { background: transparent; border: none; color: #aaa; font-size: 18px; cursor: pointer; }
+.modalTitle {
+  margin: 0;
+  font-size: 1.3rem;
+}
+.iconBtn {
+  background: transparent;
+  border: none;
+  color: #aaa;
+  font-size: 18px;
+  cursor: pointer;
+}
 
 /* Forms */
-.form { display: grid; gap: 14px; }
+.form {
+  display: grid;
+  gap: 14px;
+}
 
 .field {
   display: grid;
@@ -126,17 +154,32 @@
   gap: 10px;
 }
 
-.formMsg { margin: 4px 0 0; color: #ff9b9b; font-weight: 600; }
+.formMsg {
+  margin: 4px 0 0;
+  color: #ff9b9b;
+  font-weight: 600;
+}
 
 /* Small screens */
 @media (max-width: 720px) {
-  .twoCol { grid-template-columns: 1fr; }
-  .modalCard { max-width: 100%; border-radius: 12px; }
+  .twoCol {
+    grid-template-columns: 1fr;
+  }
+  .modalCard {
+    max-width: 100%;
+    border-radius: 12px;
+  }
 }
 
 /* Helpers for product images/descriptions */
-.fieldRowBetween { display: flex; align-items: center; justify-content: space-between; }
-.muted { color: #aaa; }
+.fieldRowBetween {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.muted {
+  color: #aaa;
+}
 
 .imagePreviewGrid {
   margin-top: 8px;
@@ -145,8 +188,11 @@
   gap: 8px;
 }
 .imagePreviewGrid img {
-  width: 100%; height: 90px; object-fit: cover;
-  border-radius: 10px; border: 1px solid var(--nav-border, #2c2c2c);
+  width: 100%;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--nav-border, #2c2c2c);
 }
 
 .threeCol {
@@ -155,16 +201,26 @@
   gap: 12px;
 }
 
-.descGrid { display: grid; gap: 10px; }
+.descGrid {
+  display: grid;
+  gap: 10px;
+}
 .descRow {
   display: grid;
   grid-template-columns: 1fr 2fr auto;
   gap: 8px;
 }
-.descRow textarea { resize: vertical; }
+.descRow textarea {
+  resize: vertical;
+}
 
-.ghostBtn.danger { border-color: #7b2b2b; color: #ffb4b4; }
-.ghostBtn.danger:hover { background: rgba(255, 72, 72, 0.08); }
+.ghostBtn.danger {
+  border-color: #7b2b2b;
+  color: #ffb4b4;
+}
+.ghostBtn.danger:hover {
+  background: rgba(255, 72, 72, 0.08);
+}
 
 /* ---------- Product modal ONLY ---------- */
 /* Ensure your product modal uses: <div className="modalCard wide"> */
@@ -187,4 +243,74 @@
     min-width: 0;
     border-radius: 12px;
   }
+}
+.imagePreviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+}
+.previewItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.previewItem img {
+  width: 100%;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--nav-border);
+}
+.ghostBtn.small {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+.fileUpload {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.uploadBtn {
+  display: inline-block;
+  background: var(--accent, #1a73e8);
+  color: black;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  user-select: none;
+}
+.uploadBtn:hover {
+  background: #155ab6;
+}
+.uploadBtn.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.imagePreviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+.previewItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.previewItem img {
+  width: 100%;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--nav-border, #ddd);
+}
+.ghostBtn.small {
+  padding: 4px 8px;
+  font-size: 12px;
 }

@@ -1,3 +1,4 @@
+// routes/products.routes.js
 import { Router } from "express";
 import multer from "multer";
 import fs from "node:fs";
@@ -17,7 +18,7 @@ import {
   decrementStock,
   uploadProductImages,
   getProductImages,
-} from "../controllers/products.controller.js"; // NOTE: .controllers.js (plural)
+} from "../controllers/products.controller.js"; // NOTE: .controller.js (singular)
 
 const router = Router();
 
@@ -25,12 +26,12 @@ const router = Router();
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const productId = String(req.params?.id || "").trim();
-    const categoryName = String(req.body?.categoryName || "").trim();
+    const rawCategory = String(req.body?.categoryName || "").trim();
 
     // If a category is provided, use it; otherwise bucket under /products/<id>
-    const subdir = categoryName
-      ? categoryName.replace(/[^a-z0-9-_]/gi, "_").toLowerCase()
-      : path.posix.join("products", productId || "misc");
+    const subdir = rawCategory
+      ? rawCategory.replace(/[^a-z0-9-_]/gi, "_").toLowerCase() // e.g. "phones"
+      : path.posix.join("products", productId || "misc"); // e.g. "products/21"
 
     const uploadDir = path.resolve(
       "public",
@@ -40,8 +41,8 @@ const storage = multer.diskStorage({
     );
     fs.mkdirSync(uploadDir, { recursive: true });
 
-    // pass the subdir to the controller so it can build URLs consistently
-    req._imagesSubdir = subdir;
+    // Pass subdir to controller so it can build URLs consistently
+    req._imagesSubdir = subdir; // e.g. "phones" or "products/21"
     cb(null, uploadDir);
   },
   filename: (_req, file, cb) => {
@@ -58,8 +59,15 @@ const upload = multer({
 });
 
 /* ========= Images ========= */
-// POST images (field name must be "images")
-router.post("/:id/images", upload.array("images", 8), uploadProductImages);
+// Use .fields so both "images" (files) and "categoryName" (text) are parsed together.
+router.post(
+  "/:id/images",
+  upload.fields([
+    { name: "images", maxCount: 8 },
+    { name: "categoryName", maxCount: 1 },
+  ]),
+  uploadProductImages
+);
 router.get("/:id/images", getProductImages);
 
 /* ========= Filters ========= */

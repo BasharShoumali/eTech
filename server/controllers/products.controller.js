@@ -212,32 +212,27 @@ export async function decrementStock(req, res, next) {
 /* =========================
    Images
    ========================= */
-// NOTE: multer is configured in routes; here we just read req.files + text fields
 export async function uploadProductImages(req, res, next) {
   try {
     const productId = Number(req.params.id);
     if (!Number.isInteger(productId)) {
       return res.status(400).json({ error: "invalid id" });
     }
-    if (!req.files?.length) {
+
+    const files = req.files?.images || [];
+    if (!files.length)
       return res.status(400).json({ error: "No images uploaded" });
-    }
 
-    // categoryName comes as a text field in the multipart form (optional)
-    const rawCategory = String(req.body?.categoryName || "misc").trim();
-    const safeCategory = rawCategory
-      .replace(/[^a-z0-9-_]/gi, "_")
-      .toLowerCase();
-
-    // Files were saved by multer to public/assets/imgs/<safeCategory> with generated names
-    const files = req.files.map((f, idx) => ({
+    const subdir =
+      req._imagesSubdir || path.posix.join("products", String(productId));
+    const rows = files.map((f, idx) => ({
       file_name: f.filename,
-      url: `/assets/imgs/${safeCategory}/${f.filename}`,
+      url: `/assets/imgs/${subdir}/${f.filename}`,
       sort_order: idx,
     }));
 
-    const placeholders = files.map(() => "(?,?,?,?)").join(",");
-    const params = files.flatMap((f) => [
+    const placeholders = rows.map(() => "(?,?,?,?)").join(",");
+    const params = rows.flatMap((f) => [
       productId,
       f.file_name,
       f.url,
@@ -250,7 +245,7 @@ export async function uploadProductImages(req, res, next) {
       params
     );
 
-    res.status(201).json({ uploaded: true, files: files.map((f) => f.url) });
+    res.status(201).json({ uploaded: true, files: rows.map((f) => f.url) });
   } catch (e) {
     if (e?.code === "ER_NO_REFERENCED_ROW_2") {
       return res

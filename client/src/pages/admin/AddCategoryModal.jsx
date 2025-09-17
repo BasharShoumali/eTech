@@ -3,6 +3,9 @@ import "./AdminsPage.css";
 
 export default function AddCategoryModal({ API, onClose, onCreated }) {
   const [categoryName, setCategoryName] = useState("");
+  const [image, setImage] = useState(null); // File | null
+  const [fileName, setFileName] = useState(""); // UI label
+  const [previewUrl, setPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
 
@@ -18,26 +21,95 @@ export default function AddCategoryModal({ API, onClose, onCreated }) {
     if (e.target === e.currentTarget) onClose?.();
   };
 
+  // Clean up preview URL on unmount or when it changes
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  const onSelectImage = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // revoke previous
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+
+    setImage(file);
+    setFileName(file.name);
+    setPreviewUrl(URL.createObjectURL(file));
+
+    // allow re-selecting same file later
+    e.target.value = "";
+  };
+
+  const removeImage = () => {
+    setImage(null);
+    setFileName("");
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+  };
+
+  const safeJson = async (res) => {
+    try {
+      return await res.json();
+    } catch {
+      return null;
+    }
+  };
+
   const submit = async (e) => {
     e.preventDefault();
     setMsg("");
-    if (!categoryName.trim()) return setMsg("Category name is required");
+
+    const name = categoryName.trim();
+    if (!name) return setMsg("Category name is required");
 
     setLoading(true);
     try {
+      // Step 1: Create category
       const res = await fetch(`${API}/api/categories`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ categoryName: categoryName.trim() }),
+        body: JSON.stringify({ categoryName: name }),
       });
+
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
+        const err = (await safeJson(res)) || {};
         throw new Error(err.error || `Create failed (${res.status})`);
       }
+
+      const category = await res.json();
+      const categoryId = category.categoryNumber;
+
+      // Step 2: Upload image if provided
+      if (image && categoryId) {
+        const fd = new FormData();
+        fd.append("image", image);
+        fd.append("categoryName", name); // used by server for folder naming
+
+        const imgRes = await fetch(
+          `${API}/api/categories/${categoryId}/image`,
+          {
+            method: "POST",
+            body: fd, // don't set Content-Type manually
+          }
+        );
+
+        if (!imgRes.ok) {
+          const err = (await safeJson(imgRes)) || {};
+          throw new Error(
+            err.error || `Image upload failed (${imgRes.status})`
+          );
+        }
+      }
+
       onCreated?.();
       onClose?.();
-    } catch (e) {
-      setMsg(e.message || "Create failed");
+    } catch (e2) {
+      setMsg(e2.message || "Save failed");
     } finally {
       setLoading(false);
     }
@@ -73,7 +145,54 @@ export default function AddCategoryModal({ API, onClose, onCreated }) {
               onChange={(e) => setCategoryName(e.target.value)}
               required
               autoFocus
+              disabled={loading}
             />
+          </label>
+
+          <label className="field">
+            <div className="fieldRowBetween">
+              <span>Category Image</span>
+              {fileName && <small className="muted">{fileName}</small>}
+            </div>
+
+            {/* Styled upload button + hidden input */}
+            <div className="fileUpload">
+              <label className={`uploadBtn${loading ? " disabled" : ""}`}>
+                {image ? "Replace Image" : "Choose Image"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={onSelectImage}
+                  disabled={loading}
+                  hidden
+                />
+              </label>
+
+              {image && (
+                <button
+                  type="button"
+                  className="ghostBtn danger small"
+                  onClick={removeImage}
+                  disabled={loading}
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+
+            {previewUrl && (
+              <div style={{ marginTop: 12 }}>
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  style={{
+                    width: 200,
+                    borderRadius: 8,
+                    border: "1px solid #ccc",
+                  }}
+                />
+              </div>
+            )}
           </label>
 
           <div className="modalActions">

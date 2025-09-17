@@ -17,6 +17,8 @@ export default function AddProductModal({ API, onClose, onCreated }) {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
 
+  const MAX_IMAGES = 8; // keep in sync with backend multer limit
+
   // Close on ESC
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && onClose?.();
@@ -41,6 +43,7 @@ export default function AddProductModal({ API, onClose, onCreated }) {
     })();
   }, [API]);
 
+  // Previews for images
   const previews = useMemo(
     () => images.map((f) => URL.createObjectURL(f)),
     [images]
@@ -55,9 +58,33 @@ export default function AddProductModal({ API, onClose, onCreated }) {
     setForm((f) => ({ ...f, [name]: value }));
   };
 
+  // Append images instead of replacing; dedupe; respect MAX_IMAGES
   const onSelectImages = (e) => {
-    const files = Array.from(e.target.files || []);
-    setImages(files);
+    const picked = Array.from(e.target.files || []);
+    if (!picked.length) return;
+
+    setImages((prev) => {
+      const merged = [...prev, ...picked];
+
+      // dedupe by name+size+lastModified
+      const seen = new Set();
+      const unique = [];
+      for (const f of merged) {
+        const key = `${f.name}__${f.size}__${f.lastModified}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          unique.push(f);
+        }
+      }
+      return unique.slice(0, MAX_IMAGES);
+    });
+
+    // allow re-selecting the same files later
+    e.target.value = "";
+  };
+
+  const removeImage = (idx) => {
+    setImages((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const updateDesc = (i, key, value) => {
@@ -120,17 +147,18 @@ export default function AddProductModal({ API, onClose, onCreated }) {
       // 2) Upload images (optional)
       if (images.length) {
         const fd = new FormData();
-        images.forEach((file) => fd.append("images", file)); // MUST match upload.array("images")
+        images.forEach((file) => fd.append("images", file)); // MUST match upload.fields({name:'images'})
         const category = categories.find(
           (c) => Number(c.categoryNumber) === Number(form.categoryNumber)
         );
         if (category?.categoryName)
           fd.append("categoryName", category.categoryName);
+
         const imgRes = await fetch(
           `${API}/api/products/${productNumber}/images`,
           {
             method: "POST",
-            body: fd, // do NOT set Content-Type manually
+            body: fd, // don't set Content-Type
           }
         );
         if (!imgRes.ok) {
@@ -141,7 +169,7 @@ export default function AddProductModal({ API, onClose, onCreated }) {
         }
       }
 
-      // 3) Create descriptions (optional) — via DescriptionsController
+      // 3) Create descriptions (optional)
       const cleanDescs = descs
         .map((d) => ({ title: d.title.trim(), text: d.text.trim() }))
         .filter((d) => d.title || d.text);
@@ -159,6 +187,7 @@ export default function AddProductModal({ API, onClose, onCreated }) {
           );
         }
       }
+
       onCreated?.();
       onClose?.();
     } catch (e2) {
@@ -265,18 +294,44 @@ export default function AddProductModal({ API, onClose, onCreated }) {
           <div className="field">
             <div className="fieldRowBetween">
               <span>Images</span>
-              <small className="muted">You can select multiple</small>
+              <small className="muted">
+                {images.length}/{MAX_IMAGES} selected — You can select multiple
+              </small>
             </div>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={onSelectImages}
-            />
+
+            {/* Styled upload button + hidden input */}
+            <div className="fileUpload">
+              <label
+                className={`uploadBtn${
+                  images.length >= MAX_IMAGES ? " disabled" : ""
+                }`}
+              >
+                {images.length ? "Add More Images" : "Choose Images"}
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={onSelectImages}
+                  disabled={images.length >= MAX_IMAGES}
+                  hidden
+                />
+              </label>
+            </div>
+
             {previews.length > 0 && (
               <div className="imagePreviewGrid">
                 {previews.map((src, i) => (
-                  <img key={i} src={src} alt={`preview-${i}`} />
+                  <div key={i} className="previewItem">
+                    <img src={src} alt={`preview-${i}`} />
+                    <button
+                      type="button"
+                      className="ghostBtn danger small"
+                      onClick={() => removeImage(i)}
+                      style={{ marginTop: 6 }}
+                    >
+                      Remove
+                    </button>
+                  </div>
                 ))}
               </div>
             )}
