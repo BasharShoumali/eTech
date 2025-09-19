@@ -17,7 +17,6 @@ function mask(cardNumber = "") {
   return cardNumber ? cardNumber.replace(/\d(?=\d{4})/g, "•") : cardNumber;
 }
 
-/* ---------- helpers ---------- */
 async function setOnlyDefault(conn, userNumber, paymentID) {
   await conn.execute(`UPDATE ${TABLE} SET isDefault=0 WHERE userNumber=?`, [
     userNumber,
@@ -27,69 +26,73 @@ async function setOnlyDefault(conn, userNumber, paymentID) {
   ]);
 }
 
-/* ---------- list by user ---------- */
+// ---------------------- Get Methods ----------------------
+
 export async function getPaymentsByUser(req, res) {
   const { userNumber } = req.params;
+
   const [rows] = await pool.query(
-    `SELECT ${ID}, userNumber, cardHolderName, expiryMonth, expiryYear,
-            billingAddress, created_at, isDefault
+    `SELECT ${ID}, userNumber, cardHolderName, 
+            CONCAT(LEFT(cardNumber, 0), '•••• •••• •••• ', RIGHT(cardNumber, 4)) AS cardNumber,
+            expiryMonth, expiryYear, billingAddress, created_at, isDefault
      FROM ${TABLE}
-     WHERE userNumber=?
+     WHERE userNumber = ? AND isDeleted = 0
      ORDER BY isDefault DESC, ${ID} DESC`,
     [userNumber]
   );
+
   res.json(rows);
 }
 
-/* ---------- get default for user ---------- */
 export async function getDefaultPaymentByUser(req, res) {
   const { userNumber } = req.params;
+
   const [rows] = await pool.query(
-    `SELECT ${ID}, userNumber, cardHolderName, expiryMonth, expiryYear,
-            billingAddress, created_at, isDefault
+    `SELECT ${ID}, userNumber, cardHolderName, 
+            CONCAT(LEFT(cardNumber, 0), '•••• •••• •••• ', RIGHT(cardNumber, 4)) AS cardNumber,
+            expiryMonth, expiryYear, billingAddress, created_at, isDefault
      FROM ${TABLE}
-     WHERE userNumber=? AND isDefault=1
+     WHERE userNumber = ? AND isDefault = 1 AND isDeleted = 0
      LIMIT 1`,
     [userNumber]
   );
+
   res.json(rows[0] || null);
 }
 
-/* ---------- base CRUD (keep your existing getAll/getById) ---------- */
+// ---------------------- Create ----------------------
 
 export async function createPayment(req, res) {
   const data = pick(req.body, ALLOWED);
-  if (!data.userNumber)
-    return res.status(400).json({ error: "userNumber required" });
+  if (!data.userNumber || !data.cardNumber)
+    return res
+      .status(400)
+      .json({ error: "userNumber and cardNumber required" });
 
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
 
-    // if user has no methods yet, force new one as default
     const [[cnt]] = await conn.query(
       `SELECT COUNT(*) AS c FROM ${TABLE} WHERE userNumber=?`,
       [data.userNumber]
     );
     const makeDefault = data.isDefault === 1 || cnt.c === 0;
 
-    // insert
     const { sql, params } = buildInsert(TABLE, {
       ...data,
       isDefault: makeDefault ? 1 : 0,
     });
     const [r] = await conn.execute(sql, params);
 
-    // if requested default (or it's the first), ensure it is the only default
-    if (makeDefault) {
-      await setOnlyDefault(conn, data.userNumber, r.insertId);
-    }
+    if (makeDefault) await setOnlyDefault(conn, data.userNumber, r.insertId);
 
     await conn.commit();
 
     const [rows] = await pool.query(
-      `SELECT ${ID}, userNumber, cardHolderName, expiryMonth, expiryYear,
-              billingAddress, created_at, isDefault
+      `SELECT ${ID}, userNumber, cardHolderName,
+              CONCAT(LEFT(cardNumber, 0), '•••• •••• •••• ', RIGHT(cardNumber, 4)) AS cardNumber,
+              expiryMonth, expiryYear, billingAddress, created_at, isDefault
        FROM ${TABLE} WHERE ${ID}=?`,
       [r.insertId]
     );
@@ -103,6 +106,8 @@ export async function createPayment(req, res) {
   }
 }
 
+// ---------------------- Update ----------------------
+
 export async function updatePayment(req, res) {
   const data = pick(req.body, ALLOWED);
   const b = buildUpdate(TABLE, data, ID);
@@ -112,7 +117,6 @@ export async function updatePayment(req, res) {
   try {
     await conn.beginTransaction();
 
-    // if turning this method into default, clear the others first
     if (data.isDefault === 1) {
       const [[row]] = await conn.query(
         `SELECT userNumber FROM ${TABLE} WHERE ${ID}=?`,
@@ -134,8 +138,9 @@ export async function updatePayment(req, res) {
     await conn.commit();
 
     const [rows] = await pool.query(
-      `SELECT ${ID}, userNumber, cardHolderName, expiryMonth, expiryYear,
-              billingAddress, created_at, isDefault
+      `SELECT ${ID}, userNumber, cardHolderName,
+              CONCAT(LEFT(cardNumber, 0), '•••• •••• •••• ', RIGHT(cardNumber, 4)) AS cardNumber,
+              expiryMonth, expiryYear, billingAddress, created_at, isDefault
        FROM ${TABLE} WHERE ${ID}=?`,
       [req.params.id]
     );
@@ -149,32 +154,39 @@ export async function updatePayment(req, res) {
   }
 }
 
-/* ---------- delete (reassign default if needed) ---------- */
+// ---------------------- Delete ----------------------
+
 export async function deletePayment(req, res) {
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
 
+    // Get the current card info
     const [[cur]] = await conn.query(
-      `SELECT userNumber, isDefault FROM ${TABLE} WHERE ${ID}=?`,
+      `SELECT userNumber, isDefault FROM ${TABLE} WHERE ${ID}=? AND isDeleted=0`,
       [req.params.id]
     );
+
     if (!cur) {
       await conn.rollback();
-      return res.status(404).json({ error: "Not found" });
+      return res.status(404).json({ error: "Not found or already deleted" });
     }
 
-    await conn.execute(`DELETE FROM ${TABLE} WHERE ${ID}=?`, [req.params.id]);
+    // Soft delete the card
+    await conn.execute(`UPDATE ${TABLE} SET isDeleted=1 WHERE ${ID}=?`, [
+      req.params.id,
+    ]);
 
-    // if we deleted the default, set the newest remaining method as default (if any)
+    // If the deleted card was default, promote another one
     if (cur.isDefault === 1) {
       const [[nextOne]] = await conn.query(
         `SELECT ${ID} FROM ${TABLE}
-         WHERE userNumber=?
+         WHERE userNumber=? AND isDeleted=0
          ORDER BY ${ID} DESC
          LIMIT 1`,
         [cur.userNumber]
       );
+
       if (nextOne) {
         await setOnlyDefault(conn, cur.userNumber, nextOne[ID]);
       }
@@ -191,7 +203,8 @@ export async function deletePayment(req, res) {
   }
 }
 
-/* ---------- explicit endpoint to set default ---------- */
+// ---------------------- Set Default ----------------------
+
 export async function setDefaultPayment(req, res) {
   const { id } = req.params;
   const [[row]] = await pool.query(
@@ -207,8 +220,9 @@ export async function setDefaultPayment(req, res) {
     await conn.commit();
 
     const [[pm]] = await pool.query(
-      `SELECT ${ID}, userNumber, cardHolderName, expiryMonth, expiryYear,
-              billingAddress, created_at, isDefault
+      `SELECT ${ID}, userNumber, cardHolderName,
+              CONCAT(LEFT(cardNumber, 0), '•••• •••• •••• ', RIGHT(cardNumber, 4)) AS cardNumber,
+              expiryMonth, expiryYear, billingAddress, created_at, isDefault
        FROM ${TABLE} WHERE ${ID}=?`,
       [id]
     );

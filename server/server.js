@@ -1,11 +1,11 @@
-// server/app.js
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import path from "node:path";
 
 import usersRouter from "./routes/users.routes.js";
-import apiRouter from "./routes/index.js"; // Must include /products router with /product-images support
+import apiRouter from "./routes/index.js"; // contains /products
+import paymentMethodsRouter from "./routes/paymentMethods.routes.js";
 
 const app = express();
 
@@ -28,10 +28,9 @@ app.use(
 app.get("/api/health", (_, res) => res.json({ ok: true }));
 
 /* ---------- API Routes (order matters!) ---------- */
-app.use("/api/users", usersRouter); // Always mount user routes first
-
-// Main API router that must include `/products` and `/products/product-images`
-app.use("/api", apiRouter);
+app.use("/api/users", usersRouter);
+app.use("/api/payment-methods", paymentMethodsRouter); // ✅ MOVE THIS ABOVE THE 404 HANDLER
+app.use("/api", apiRouter); // your /products etc
 
 /* ---------- Fallback for unknown API routes ---------- */
 app.use("/api", (req, res) => {

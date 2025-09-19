@@ -1,0 +1,367 @@
+/* src/pages/account/PaymentMethodsPage.css */
+
+/* =========================
+   General Page Layout
+   ========================= */
+.paymentMethodsPage {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+  color: var(--text);
+}
+
+.paymentMethodsPage h2,
+.paymentMethodsPage h3 {
+  margin-bottom: 16px;
+  color: var(--text);
+}
+
+.paymentMethodsPage .msg {
+  background: #2a2a2a;
+  padding: 10px 16px;
+  border-left: 4px solid var(--ring);
+  margin-bottom: 16px;
+  border-radius: 8px;
+  color: var(--text);
+}
+
+.paymentMethodsPage table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  margin-bottom: 32px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.paymentMethodsPage th,
+.paymentMethodsPage td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #333;
+}
+
+.paymentMethodsPage th {
+  background: var(--card);
+  color: var(--muted);
+}
+
+.paymentMethodsPage td button {
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* =========================
+   Card Add Section
+   ========================= */
+.addText {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.cardPlaceholder {
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 85.6 / 54;
+  margin: 0 auto;
+  padding: 20px;
+  background: linear-gradient(135deg, #0e1a1a, #163a35 60%, #0b0e10);
+  border-radius: 16px;
+  color: white;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-family: "Segoe UI", sans-serif;
+  overflow: hidden;
+  box-shadow: 0 0 8px #00ffe0, 0 0 16px rgba(0, 255, 224, 0.4);
+}
+
+/* =========================
+   Logos & Icons
+   ========================= */
+.cardLogo {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.cardChip {
+  position: absolute;
+  top: 58px;
+  left: 20px;
+  width: 48px;
+  height: 36px;
+  background: #d9d9d9;
+  border-radius: 6px;
+}
+
+.brandLogo {
+  position: absolute;
+  bottom: 12px;
+  right: 20px;
+  height: 56px;
+  object-fit: contain;
+}
+
+/* =========================
+   Card Inputs & Layout
+   ========================= */
+.cardNumber {
+  margin-top: 96px;
+  text-align: center;
+  padding: 0 8px;
+}
+
+/* VALID THRU */
+.cardValid {
+  text-align: center;
+  font-size: 0.8rem;
+  margin-top: 6px;
+}
+
+.cardValid .label {
+  font-size: 0.7rem;
+  color: #eee;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.validRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.mmInput,
+.yyInput {
+  width: 2.2ch;
+  text-align: center;
+  font-weight: 700;
+}
+
+.slash {
+  opacity: 0.85;
+}
+
+/* CVV Top Right */
+.cardCVV {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  text-align: right;
+}
+
+.cardCVV .label {
+  font-size: 0.7rem;
+  color: #ccc;
+  text-transform: uppercase;
+}
+
+.cvvInput {
+  width: 3ch;
+  max-length: 3;
+  text-align: right;
+  font-weight: 700;
+}
+
+/* Footer Layout */
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 0 4px 4px;
+  margin-top: auto;
+}
+
+.cardHolder {
+  font-weight: bold;
+  font-size: 0.95rem;
+  margin-top: 8px;
+}
+
+.nameInput {
+  width: 68%;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+}
+
+/* =========================
+   Input Styling
+   ========================= */
+.cardInput {
+  background: transparent;
+  border: none;
+  color: #fff;
+  outline: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  caret-color: #00ffe0;
+}
+
+.cardInput::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.cardInput:focus {
+  background: transparent;
+  outline: none;
+  box-shadow: none;
+}
+
+.numberInput {
+  width: 100%;
+  text-align: center;
+  letter-spacing: 3px;
+  font-size: 1.55rem;
+}
+
+/* =========================
+   Responsive Fixes
+   ========================= */
+@media (max-width: 480px) {
+  .cardPlaceholder {
+    padding: 2px;
+    box-shadow: 0 0 6px #00ffe0, 0 0 12px rgba(0, 255, 224, 0.3);
+  }
+
+  .cardNumber {
+    font-size: 1.3rem;
+    letter-spacing: 2px;
+  }
+
+  .cardFooter {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .brandLogo {
+    height: 48px;
+  }
+
+  .nameInput {
+    width: 100%;
+  }
+}
+.saveCardContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.saveCardBtn {
+  padding: 10px 24px;
+  background: #00ffe0;
+  color: #000;
+  font-weight: bold;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.saveCardBtn:hover {
+  background: #00ccb8;
+}
+/* =========================
+   Action Buttons
+   ========================= */
+
+.cardActionBtn {
+  font-size: 0.95rem;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s ease;
+  margin-right: 8px;
+  border: none;
+  color: white;
+}
+
+/* View Button = page's blue */
+.viewBtn {
+  color: black;
+  background: #00ffe0; /* your site’s teal-blue */
+}
+
+.viewBtn:hover {
+  background: #00ccb8; /* darker variant of --ring */
+}
+
+/* Delete Button = red */
+.deleteBtn {
+  background: #ff3b3b;
+}
+
+.deleteBtn:hover {
+  background: #d93636;
+}
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+}
+
+.modalBody {
+  background: var(--card, #111);
+  padding: 24px;
+  border-radius: var(--radius);
+  text-align: center;
+  color: var(--text);
+  border: 1px solid var(--ring);
+  border-radius: 10px;
+  box-shadow: 0 0 16px rgba(0, 255, 224, 0.25);
+  min-width: 300px;
+}
+
+.confirmText {
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+}
+
+.confirmBtns {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.cancelBtn {
+  background: #777;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.cancelBtn:hover {
+  background: #666;
+}
+
+.deleteBtn {
+  background: #f33;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.deleteBtn:hover {
+  background: #d00;
+}

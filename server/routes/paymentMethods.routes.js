@@ -23,7 +23,7 @@ router.post("/", createPayment);
 router.patch("/:id", updatePayment);
 
 // delete a payment method
-router.delete("/:id", deletePayment);
+router.patch("/:id/delete", deletePayment);
 
 // explicitly set a payment method as default
 router.post("/:id/default", setDefaultPayment);
