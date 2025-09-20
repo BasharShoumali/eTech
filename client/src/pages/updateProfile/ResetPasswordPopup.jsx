@@ -2,8 +2,6 @@ import { useState } from "react";
 import "./ResetPasswordPopup.css";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
-
-/** If your backend expects "newPassword", change this to "newPassword" */
 const PASSWORD_KEY = "password";
 
 export default function ResetPasswordPopup({ userID, onClose }) {
@@ -18,15 +16,17 @@ export default function ResetPasswordPopup({ userID, onClose }) {
     setMessage("");
 
     if (!userID) return setMessage("Missing user ID. Please re-login.");
-    if (password !== confirmPassword) return setMessage("Passwords do not match.");
-    if (password.length < 8) return setMessage("Password must be at least 8 characters.");
+    if (password !== confirmPassword)
+      return setMessage("Passwords do not match.");
+    if (password.length < 8)
+      return setMessage("Password must be at least 8 characters.");
 
     setLoading(true);
     try {
       const res = await fetch(`${API}/api/users/${userID}/password`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ [PASSWORD_KEY]: password }), // backend hashes this
+        body: JSON.stringify({ [PASSWORD_KEY]: password }),
       });
 
       if (!res.ok) {
@@ -37,8 +37,6 @@ export default function ResetPasswordPopup({ userID, onClose }) {
       setMessage("Password reset successfully!");
       setPassword("");
       setConfirmPassword("");
-      // Optionally close after 1s:
-      // setTimeout(onClose, 1000);
     } catch (error) {
       setMessage(error.message || "Password update failed");
     } finally {
@@ -46,7 +44,7 @@ export default function ResetPasswordPopup({ userID, onClose }) {
     }
   };
 
-  // best-effort username for password managers (hidden)
+  // Hidden username for password managers
   const defaultUsername = (() => {
     try {
       const u = JSON.parse(localStorage.getItem("user") || "{}");
@@ -56,16 +54,35 @@ export default function ResetPasswordPopup({ userID, onClose }) {
     }
   })();
 
+  // Close when clicking overlay
+  const handleOverlayClick = (e) => {
+    if (e.target.classList.contains("modalOverlay")) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="modalOverlay" role="dialog" aria-modal="true">
+    <div
+      className="modalOverlay"
+      role="dialog"
+      aria-modal="true"
+      onClick={handleOverlayClick}
+    >
       <div className="modalCard">
         <header className="modalHead">
           <h2 className="modalTitle">Reset Password</h2>
-          <button className="iconBtn" onClick={onClose} aria-label="Close" disabled={loading}>✕</button>
+          <button
+            className="iconBtn"
+            onClick={onClose}
+            aria-label="Close"
+            disabled={loading}
+          >
+            ✕
+          </button>
         </header>
 
         <form className="form" onSubmit={handleSubmit} autoComplete="off">
-          {/* Hidden username field to satisfy Chrome/password managers */}
+          {/* Hidden username */}
           <input
             type="text"
             name="username"
@@ -73,7 +90,13 @@ export default function ResetPasswordPopup({ userID, onClose }) {
             defaultValue={defaultUsername}
             tabIndex={-1}
             aria-hidden="true"
-            style={{ position: "absolute", left: "-9999px", height: 0, width: 0, opacity: 0 }}
+            style={{
+              position: "absolute",
+              left: "-9999px",
+              height: 0,
+              width: 0,
+              opacity: 0,
+            }}
           />
 
           <label className="field">
@@ -92,7 +115,7 @@ export default function ResetPasswordPopup({ userID, onClose }) {
               <button
                 type="button"
                 className="eyeBtn"
-                onClick={() => setVisible(v => !v)}
+                onClick={() => setVisible((v) => !v)}
                 aria-label={visible ? "Hide password" : "Show password"}
                 disabled={loading}
               >
@@ -115,7 +138,7 @@ export default function ResetPasswordPopup({ userID, onClose }) {
             />
           </label>
 
-          <button className="primaryBtn" type="submit" disabled={loading}>
+          <button className="resetPrimaryBtn" type="submit" disabled={loading}>
             {loading ? "Updating…" : "Reset Password"}
           </button>
           {message && <p className="updateMessage">{message}</p>}

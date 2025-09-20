@@ -298,14 +298,6 @@
   background: #00ccb8; /* darker variant of --ring */
 }
 
-/* Delete Button = red */
-.deleteBtn {
-  background: #ff3b3b;
-}
-
-.deleteBtn:hover {
-  background: #d93636;
-}
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -338,30 +330,48 @@
   gap: 16px;
 }
 
-.cancelBtn {
-  background: #777;
-  color: white;
+/* =============== Unified Button Style =============== */
+.btn {
   padding: 10px 20px;
   border: none;
-  border-radius: 8px;
-  font-weight: bold;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
   cursor: pointer;
+  transition: 0.3s;
+  box-shadow: 0 4px 12px rgba(0, 255, 224, 0.3);
+  background: linear-gradient(135deg, #00ffe0, #00b8a9);
+  color: #000;
 }
 
-.cancelBtn:hover {
-  background: #666;
+.btn:hover {
+  background: linear-gradient(135deg, #00e6cc, #009688);
+  transform: translateY(-1px);
 }
 
-.deleteBtn {
-  background: #f33;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
+/* Delete Button Variant */
+/* Force Delete Button Gradient Red */
+.btn-danger {
+  background: linear-gradient(135deg, #ff4b5c, #ff2e63) !important;
+  color: black;
+  box-shadow: 0 4px 12px rgba(255, 46, 99, 0.4);
+  margin-left: 10px;
 }
 
-.deleteBtn:hover {
-  background: #d00;
+.btn-danger:hover {
+  background: linear-gradient(135deg, #ff2e63, #cc0044) !important;
+  transform: translateY(-1px);
+}
+
+/* Make Save Card bigger */
+.btn-save {
+  padding: 12px 28px;
+  font-size: 1rem;
+}
+
+/* Table action buttons smaller */
+.btn-small {
+  padding: 6px 14px;
+  font-size: 18px;
+  box-shadow: 0 2px 8px rgba(0, 255, 224, 0.25);
 }

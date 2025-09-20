@@ -1,4 +1,3 @@
-// src/pages/account/PaymentMethodsPage.jsx
 import { useEffect, useState } from "react";
 import CardPreviewModal from "../../components/cardPreviewModal/CardPreviewModal";
 import "./PaymentMethodsPage.css";
@@ -13,7 +12,6 @@ export default function PaymentMethodsPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [cardToDelete, setCardToDelete] = useState(null);
 
-  // inline draft state for the on-card inputs
   const [draft, setDraft] = useState({
     number: "",
     mm: "",
@@ -22,15 +20,77 @@ export default function PaymentMethodsPage() {
     cvv: "",
   });
 
-  // ------- helpers for formatting/validation -------
+  // Helpers
   const onlyDigits = (s = "") => s.replace(/\D+/g, "");
+  const formatCardNumber = (raw) =>
+    onlyDigits(raw)
+      .slice(0, 16)
+      .replace(/(\d{4})(?=\d)/g, "$1 ")
+      .trim();
 
-  const formatCardNumber = (raw) => {
-    const digits = onlyDigits(raw).slice(0, 16);
-    // group into xxxx xxxx xxxx xxxx
-    return digits.replace(/(\d{4})(?=\d)/g, "$1 ").trim();
+  // Input Handlers
+  const handleNumberChange = (e) =>
+    setDraft((d) => ({ ...d, number: formatCardNumber(e.target.value) }));
+
+  const handleCVVChange = (e) =>
+    setDraft((d) => ({ ...d, cvv: onlyDigits(e.target.value).slice(0, 4) }));
+
+  const handleMMChange = (e) => {
+    let v = onlyDigits(e.target.value).slice(0, 2);
+    if (v.length === 1 && Number(v) > 1) v = "0" + v;
+    if (v.length === 2) {
+      const n = Number(v);
+      if (n === 0) v = "01";
+      else if (n > 12) v = "12";
+    }
+    setDraft((d) => ({ ...d, mm: v }));
   };
 
+  const handleYYChange = (e) =>
+    setDraft((d) => ({ ...d, yy: onlyDigits(e.target.value).slice(0, 2) }));
+
+  const handleNameChange = (e) =>
+    setDraft((d) => ({
+      ...d,
+      name: e.target.value.toUpperCase().slice(0, 26),
+    }));
+
+  // Save Card
+  const handleSaveCard = async () => {
+    if (!user?.userNumber) return;
+
+    try {
+      const res = await fetch(`${API}/api/payment-methods`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userNumber: user.userNumber,
+          cardHolderName: draft.name,
+          cardNumber: draft.number.replace(/\s/g, ""),
+          cvv: draft.cvv,
+          expiryMonth: Number(draft.mm),
+          expiryYear: 2000 + Number(draft.yy),
+          billingAddress: "",
+          isDefault: 0,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to save card");
+      }
+
+      const newCard = await res.json();
+      setMethods((prev) => [newCard, ...prev]);
+      setDraft({ number: "", mm: "", yy: "", name: "", cvv: "" });
+      setMsg("Card saved successfully.");
+    } catch (err) {
+      console.error(err);
+      setMsg(err.message);
+    }
+  };
+
+  // Delete Card
   const handleDeleteCard = async () => {
     try {
       const res = await fetch(
@@ -40,6 +100,7 @@ export default function PaymentMethodsPage() {
         }
       );
       if (!res.ok) throw new Error("Failed to delete card");
+
       setMethods((prev) => prev.filter((m) => m.paymentID !== cardToDelete));
       setMsg("Card deleted.");
     } catch (err) {
@@ -51,71 +112,7 @@ export default function PaymentMethodsPage() {
     }
   };
 
-  const handleNumberChange = (e) => {
-    setDraft((d) => ({ ...d, number: formatCardNumber(e.target.value) }));
-  };
-
-  const handleCVVChange = (e) => {
-    const v = onlyDigits(e.target.value).slice(0, 4);
-    setDraft((d) => ({ ...d, cvv: v }));
-  };
-
-  const handleMMChange = (e) => {
-    let v = onlyDigits(e.target.value).slice(0, 2);
-    // clamp 01-12 (allow empty while typing)
-    if (v.length === 1 && Number(v) > 1) v = "0" + v; // e.g. '9' -> '09'
-    if (v.length === 2) {
-      const n = Number(v);
-      if (n === 0) v = "01";
-      else if (n > 12) v = "12";
-    }
-    setDraft((d) => ({ ...d, mm: v }));
-  };
-
-  const handleYYChange = (e) => {
-    const v = onlyDigits(e.target.value).slice(0, 2);
-    setDraft((d) => ({ ...d, yy: v }));
-  };
-
-  const handleNameChange = (e) => {
-    const v = e.target.value.toUpperCase().slice(0, 26);
-    setDraft((d) => ({ ...d, name: v }));
-  };
-
-  const handleSaveCard = async () => {
-    if (!user?.userNumber) return;
-
-    try {
-      const res = await fetch(`${API}/api/payment-methods`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userNumber: user.userNumber,
-          cardHolderName: draft.name,
-          cardNumber: draft.number.replace(/\s/g, ""), // remove spaces
-          expiryMonth: Number(draft.mm),
-          expiryYear: 2000 + Number(draft.yy), // handle 2-digit years
-          billingAddress: "", // optionally add an input for this later
-          isDefault: 0, // or 1 if you'd like it to be default
-        }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to save card");
-      }
-
-      const newCard = await res.json();
-      setMethods((prev) => [newCard, ...prev]); // update the list
-      setDraft({ number: "", mm: "", yy: "", name: "", cvv: "" }); // clear inputs
-      setMsg("Card saved successfully.");
-    } catch (err) {
-      console.error(err);
-      setMsg(err.message);
-    }
-  };
-
-  // ------- load user from localStorage -------
+  // Load user
   useEffect(() => {
     const savedUser = JSON.parse(localStorage.getItem("user"));
     if (!savedUser) {
@@ -125,7 +122,7 @@ export default function PaymentMethodsPage() {
     setUser(savedUser);
   }, []);
 
-  // ------- fetch methods for the user -------
+  // Fetch payment methods
   useEffect(() => {
     if (!user?.userNumber) return;
     fetch(`${API}/api/payment-methods/user/${user.userNumber}`)
@@ -155,13 +152,13 @@ export default function PaymentMethodsPage() {
               <td>{"**** **** **** " + (m.cardNumber?.slice(-4) || "0000")}</td>
               <td>
                 <button
-                  className="cardActionBtn viewBtn"
+                  className="btn btn-small"
                   onClick={() => setSelectedCard(m)}
                 >
                   View
                 </button>
                 <button
-                  className="cardActionBtn deleteBtn"
+                  className="btn btn-danger btn-small"
                   onClick={() => {
                     setCardToDelete(m.paymentID);
                     setConfirmOpen(true);
@@ -175,22 +172,18 @@ export default function PaymentMethodsPage() {
         </tbody>
       </table>
 
+      {/* Add Card Section */}
       <div className="addSection">
         <p className="addText">I want to add a new method</p>
-
-        {/* Editable card */}
         <div className="cardPlaceholder">
-          {/* top-left site logo (use /public/assets path style for Vite) */}
           <img
             src="/assets/logos/E-square-logo.png"
             alt="Site Logo"
             className="cardLogo"
           />
-
-          {/* chip under the logo */}
           <div className="cardChip" />
 
-          {/* CVV (top-right) */}
+          {/* CVV */}
           <div className="cardCVV">
             <label className="label" htmlFor="cvv">
               CVV:
@@ -207,20 +200,20 @@ export default function PaymentMethodsPage() {
             />
           </div>
 
-          {/* Card number (center) */}
+          {/* Card Number */}
           <div className="cardNumber">
             <input
               className="cardInput numberInput"
               inputMode="numeric"
               pattern="[0-9 ]*"
-              maxLength={19} // 16 digits + 3 spaces
+              maxLength={19}
               placeholder="#### #### #### ####"
               value={draft.number}
               onChange={handleNumberChange}
             />
           </div>
 
-          {/* VALID THRU (center under number) */}
+          {/* Valid Thru */}
           <div className="cardValid">
             <div className="label">VALID THRU</div>
             <div className="validRow">
@@ -246,7 +239,7 @@ export default function PaymentMethodsPage() {
             </div>
           </div>
 
-          {/* Footer: name left, brand right */}
+          {/* Footer */}
           <div className="cardFooter">
             <input
               className="cardInput nameInput"
@@ -263,31 +256,35 @@ export default function PaymentMethodsPage() {
         </div>
 
         <div className="saveCardContainer">
-          <button className="saveCardBtn" onClick={handleSaveCard}>
+          <button className="btn btn-save" onClick={handleSaveCard}>
             Save This Card
           </button>
         </div>
       </div>
 
+      {/* Preview Modal */}
       <CardPreviewModal
         method={selectedCard}
         onClose={() => setSelectedCard(null)}
       />
 
+      {/* Confirm Delete Modal */}
       {confirmOpen && (
-        <div className="modalOverlay">
+        <div
+          className="modalOverlay"
+          onClick={(e) =>
+            e.target.classList.contains("modalOverlay") && setConfirmOpen(false)
+          }
+        >
           <div className="modalBody">
             <p className="confirmText">
               Are you sure you want to delete this card?
             </p>
             <div className="confirmBtns">
-              <button
-                className="cancelBtn"
-                onClick={() => setConfirmOpen(false)}
-              >
+              <button className="btn" onClick={() => setConfirmOpen(false)}>
                 Cancel
               </button>
-              <button className="deleteBtn" onClick={handleDeleteCard}>
+              <button className="btn-danger" onClick={handleDeleteCard}>
                 Delete
               </button>
             </div>

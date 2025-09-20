@@ -7,16 +7,14 @@ const ALLOWED = [
   "userNumber",
   "cardHolderName",
   "cardNumber",
+  "cvv",
   "expiryMonth",
   "expiryYear",
   "billingAddress",
   "isDefault",
 ];
 
-function mask(cardNumber = "") {
-  return cardNumber ? cardNumber.replace(/\d(?=\d{4})/g, "•") : cardNumber;
-}
-
+// Utility: set only one default card for a user
 async function setOnlyDefault(conn, userNumber, paymentID) {
   await conn.execute(`UPDATE ${TABLE} SET isDefault=0 WHERE userNumber=?`, [
     userNumber,
@@ -32,11 +30,10 @@ export async function getPaymentsByUser(req, res) {
   const { userNumber } = req.params;
 
   const [rows] = await pool.query(
-    `SELECT ${ID}, userNumber, cardHolderName, 
-            CONCAT(LEFT(cardNumber, 0), '•••• •••• •••• ', RIGHT(cardNumber, 4)) AS cardNumber,
+    `SELECT ${ID}, userNumber, cardHolderName, cardNumber, cvv,
             expiryMonth, expiryYear, billingAddress, created_at, isDefault
      FROM ${TABLE}
-     WHERE userNumber = ? AND isDeleted = 0
+     WHERE userNumber=? AND isDeleted=0
      ORDER BY isDefault DESC, ${ID} DESC`,
     [userNumber]
   );
@@ -48,11 +45,10 @@ export async function getDefaultPaymentByUser(req, res) {
   const { userNumber } = req.params;
 
   const [rows] = await pool.query(
-    `SELECT ${ID}, userNumber, cardHolderName, 
-            CONCAT(LEFT(cardNumber, 0), '•••• •••• •••• ', RIGHT(cardNumber, 4)) AS cardNumber,
+    `SELECT ${ID}, userNumber, cardHolderName, cardNumber, cvv,
             expiryMonth, expiryYear, billingAddress, created_at, isDefault
      FROM ${TABLE}
-     WHERE userNumber = ? AND isDefault = 1 AND isDeleted = 0
+     WHERE userNumber=? AND isDefault=1 AND isDeleted=0
      LIMIT 1`,
     [userNumber]
   );
@@ -64,39 +60,42 @@ export async function getDefaultPaymentByUser(req, res) {
 
 export async function createPayment(req, res) {
   const data = pick(req.body, ALLOWED);
-  if (!data.userNumber || !data.cardNumber)
+  if (!data.userNumber || !data.cardNumber || !data.cvv)
     return res
       .status(400)
-      .json({ error: "userNumber and cardNumber required" });
+      .json({ error: "userNumber, cardNumber, and cvv are required" });
 
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
 
     const [[cnt]] = await conn.query(
-      `SELECT COUNT(*) AS c FROM ${TABLE} WHERE userNumber=?`,
+      `SELECT COUNT(*) AS c FROM ${TABLE} WHERE userNumber=? AND isDeleted=0`,
       [data.userNumber]
     );
+
     const makeDefault = data.isDefault === 1 || cnt.c === 0;
 
     const { sql, params } = buildInsert(TABLE, {
       ...data,
       isDefault: makeDefault ? 1 : 0,
     });
+
     const [r] = await conn.execute(sql, params);
 
     if (makeDefault) await setOnlyDefault(conn, data.userNumber, r.insertId);
 
     await conn.commit();
 
-    const [rows] = await pool.query(
-      `SELECT ${ID}, userNumber, cardHolderName,
-              CONCAT(LEFT(cardNumber, 0), '•••• •••• •••• ', RIGHT(cardNumber, 4)) AS cardNumber,
+    const [[newCard]] = await pool.query(
+      `SELECT ${ID}, userNumber, cardHolderName, cardNumber, cvv,
               expiryMonth, expiryYear, billingAddress, created_at, isDefault
-       FROM ${TABLE} WHERE ${ID}=?`,
+       FROM ${TABLE}
+       WHERE ${ID}=?`,
       [r.insertId]
     );
-    res.status(201).json(rows[0]);
+
+    res.status(201).json(newCard);
   } catch (e) {
     await conn.rollback();
     console.error(e);
@@ -119,7 +118,7 @@ export async function updatePayment(req, res) {
 
     if (data.isDefault === 1) {
       const [[row]] = await conn.query(
-        `SELECT userNumber FROM ${TABLE} WHERE ${ID}=?`,
+        `SELECT userNumber FROM ${TABLE} WHERE ${ID}=? AND isDeleted=0`,
         [req.params.id]
       );
       if (!row) {
@@ -137,14 +136,15 @@ export async function updatePayment(req, res) {
 
     await conn.commit();
 
-    const [rows] = await pool.query(
-      `SELECT ${ID}, userNumber, cardHolderName,
-              CONCAT(LEFT(cardNumber, 0), '•••• •••• •••• ', RIGHT(cardNumber, 4)) AS cardNumber,
+    const [[updatedCard]] = await pool.query(
+      `SELECT ${ID}, userNumber, cardHolderName, cardNumber, cvv,
               expiryMonth, expiryYear, billingAddress, created_at, isDefault
-       FROM ${TABLE} WHERE ${ID}=?`,
+       FROM ${TABLE}
+       WHERE ${ID}=?`,
       [req.params.id]
     );
-    res.json(rows[0]);
+
+    res.json(updatedCard);
   } catch (e) {
     await conn.rollback();
     console.error(e);
@@ -161,7 +161,6 @@ export async function deletePayment(req, res) {
   try {
     await conn.beginTransaction();
 
-    // Get the current card info
     const [[cur]] = await conn.query(
       `SELECT userNumber, isDefault FROM ${TABLE} WHERE ${ID}=? AND isDeleted=0`,
       [req.params.id]
@@ -172,12 +171,10 @@ export async function deletePayment(req, res) {
       return res.status(404).json({ error: "Not found or already deleted" });
     }
 
-    // Soft delete the card
     await conn.execute(`UPDATE ${TABLE} SET isDeleted=1 WHERE ${ID}=?`, [
       req.params.id,
     ]);
 
-    // If the deleted card was default, promote another one
     if (cur.isDefault === 1) {
       const [[nextOne]] = await conn.query(
         `SELECT ${ID} FROM ${TABLE}
@@ -208,7 +205,7 @@ export async function deletePayment(req, res) {
 export async function setDefaultPayment(req, res) {
   const { id } = req.params;
   const [[row]] = await pool.query(
-    `SELECT userNumber FROM ${TABLE} WHERE ${ID}=?`,
+    `SELECT userNumber FROM ${TABLE} WHERE ${ID}=? AND isDeleted=0`,
     [id]
   );
   if (!row) return res.status(404).json({ error: "Not found" });
@@ -220,12 +217,13 @@ export async function setDefaultPayment(req, res) {
     await conn.commit();
 
     const [[pm]] = await pool.query(
-      `SELECT ${ID}, userNumber, cardHolderName,
-              CONCAT(LEFT(cardNumber, 0), '•••• •••• •••• ', RIGHT(cardNumber, 4)) AS cardNumber,
+      `SELECT ${ID}, userNumber, cardHolderName, cardNumber, cvv,
               expiryMonth, expiryYear, billingAddress, created_at, isDefault
-       FROM ${TABLE} WHERE ${ID}=?`,
+       FROM ${TABLE}
+       WHERE ${ID}=?`,
       [id]
     );
+
     res.json(pm);
   } catch (e) {
     await conn.rollback();

@@ -1,21 +1,22 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./UpdateProfile.css";
 import ResetPasswordPopup from "./ResetPasswordPopup";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
-/** Return a numeric ID string (userNumber/id/_id/userID) or null */
 const getNumericId = (u) => {
   const candidates = [u?.userNumber, u?.id, u?._id, u?.userID];
   for (const c of candidates) {
     if (c == null) continue;
     const s = String(c);
-    if (/^\d+$/.test(s)) return s; // only digits allowed
+    if (/^\d+$/.test(s)) return s;
   }
   return null;
 };
 
 export default function UpdateProfile() {
+  const navigate = useNavigate();
   const savedUser = localStorage.getItem("user");
   const [user, setUser] = useState(() =>
     savedUser ? JSON.parse(savedUser) : null
@@ -64,7 +65,6 @@ export default function UpdateProfile() {
       });
       if (!res.ok) throw new Error("Failed to update " + field);
       const updatedUser = await res.json();
-
       localStorage.setItem("user", JSON.stringify(updatedUser));
       setUser(updatedUser);
       setMessage(`${field} updated successfully!`);
@@ -87,7 +87,6 @@ export default function UpdateProfile() {
       });
       if (!res.ok) throw new Error("Update failed");
       const updatedUser = await res.json();
-
       localStorage.setItem("user", JSON.stringify(updatedUser));
       setUser(updatedUser);
       setMessage("All fields updated successfully!");
@@ -127,7 +126,7 @@ export default function UpdateProfile() {
               />
               <button
                 type="button"
-                className="miniBtn"
+                className="btn-small"
                 onClick={() => updateField(name)}
               >
                 Update
@@ -138,7 +137,7 @@ export default function UpdateProfile() {
 
         <div className="actionsRow">
           <button
-            className="primaryBtn"
+            className="btn btn-blue"
             type="button"
             onClick={handleUpdateAll}
           >
@@ -146,11 +145,19 @@ export default function UpdateProfile() {
           </button>
 
           <button
-            className="secondaryBtn"
+            className="btn btn-red"
             type="button"
             onClick={() => setShowPasswordPopup(true)}
           >
             Reset Password
+          </button>
+
+          <button
+            className="btn btn-blue"
+            type="button"
+            onClick={() => navigate("/account/payment-methods")}
+          >
+            Go to Payments
           </button>
         </div>
 
@@ -159,7 +166,7 @@ export default function UpdateProfile() {
 
       {showPasswordPopup && (
         <ResetPasswordPopup
-          userID={uid} // numeric-only id
+          userID={uid}
           onClose={() => setShowPasswordPopup(false)}
         />
       )}

@@ -1,4 +1,6 @@
-/* Overlay background (kept) */
+/* =========================
+   Overlay & Animation
+   ========================= */
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -18,35 +20,146 @@
   }
 }
 
-/* Wrap card + details; card size remains controlled by .cardPlaceholder */
-.modalContent {
+/* =========================
+   Modal Layout
+   ========================= */
+.modalCard {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 14px;
+  width: 100%;
+  max-width: 420px; /* Match card max width */
 }
 
-/* Details panel under the card */
-.cardDetailsPanel {
+/* =========================
+   Card Container (matches payment page)
+   ========================= */
+.cardPlaceholder {
   width: 100%;
-  max-width: 420px; /* match the card max width */
-  background: #111; /* solid to avoid transparency issues */
+  max-width: 420px;
+  aspect-ratio: 85.6 / 54;
+  background: linear-gradient(135deg, #0e1a1a, #163a35 60%, #0b0e10);
+  border-radius: 16px;
+  padding: 20px;
+  color: white;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 0 8px #00ffe0, 0 0 16px rgba(0, 255, 224, 0.4);
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* =========================
+   Logos & Icons
+   ========================= */
+.cardLogo {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.cardChip {
+  position: absolute;
+  top: 58px;
+  left: 20px;
+  width: 48px;
+  height: 36px;
+  background: #d9d9d9;
+  border-radius: 6px;
+}
+
+.brandLogo {
+  position: absolute;
+  bottom: 12px;
+  right: 20px;
+  height: 56px;
+  object-fit: contain;
+}
+
+/* =========================
+   Card Info Layout
+   ========================= */
+.cardNumber {
+  margin-top: 96px;
+  text-align: center;
+  padding: 0 8px;
+  font-size: 1.55rem;
+  letter-spacing: 3px;
+}
+
+.cardValid {
+  text-align: center;
+  font-size: 0.8rem;
+  margin-top: 6px;
+}
+
+.cardValid .label {
+  font-size: 0.7rem;
+  color: #eee;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.validRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.mmInput,
+.yyInput {
+  width: 2.2ch;
+  text-align: center;
+  font-weight: 700;
+}
+
+.slash {
+  opacity: 0.85;
+}
+
+/* Cardholder Footer */
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 0 4px 4px;
+  margin-top: auto;
+}
+
+.nameInput {
+  width: 68%;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+}
+
+/* =========================
+   Extra Details Below Card
+   ========================= */
+.cardDetails {
+  width: 100%;
+  background: var(--card, #111);
   color: var(--text, #eaeaea);
-  border: 1px solid var(--ring, #00ffe0);
   border-radius: 12px;
   padding: 12px 14px;
   box-shadow: 0 0 12px rgba(0, 255, 224, 0.15);
+  border: 1px solid var(--ring, #00ffe0);
 }
 
-.detailRow {
+.cardDetails .detailRow {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 2px;
+  padding: 6px 2px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.detailRow:last-child {
+.cardDetails .detailRow:last-child {
   border-bottom: none;
 }
 
@@ -61,9 +174,63 @@
   word-break: break-word;
 }
 
-/* Responsive tweaks */
+/* =========================
+   Responsive Fixes
+   ========================= */
 @media (max-width: 480px) {
-  .cardDetailsPanel {
+  .cardPlaceholder {
+    padding: 2px;
+    box-shadow: 0 0 6px #00ffe0, 0 0 12px rgba(0, 255, 224, 0.3);
+  }
+
+  .cardNumber {
+    font-size: 1.3rem;
+    letter-spacing: 2px;
+  }
+
+  .cardFooter {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .brandLogo {
+    height: 48px;
+  }
+
+  .nameInput {
+    width: 100%;
+  }
+
+  .cardDetails {
     padding: 10px 12px;
   }
+}
+/* Overlay & fade-in */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+  animation: modalFadeIn 0.2s ease;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Simple center wrapper; DO NOT set max-width/height here */
+.modalCenter {
+  width: 100%;
+  padding: 0 16px; /* small side gutters on mobile */
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

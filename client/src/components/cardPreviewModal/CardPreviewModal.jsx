@@ -1,12 +1,12 @@
-// src/components/CardPreviewModal.jsx
 import "./CardPreviewModal.css";
 
 export default function CardPreviewModal({ method, onClose }) {
   if (!method) return null;
 
+  // Format as "#### #### #### ####" or keep backend-masked values
   const formatCardNumber = (num = "") =>
     String(num)
-      .replace(/\D/g, "")
+      .replace(/[^\d•\s]/g, "") // allow digits, bullet dots, spaces
       .replace(/(\d{4})(?=\d)/g, "$1 ")
       .trim();
 
@@ -20,31 +20,28 @@ export default function CardPreviewModal({ method, onClose }) {
       className="modalOverlay"
       onClick={(e) => e.target === e.currentTarget && onClose?.()}
     >
-      <div className="modalContent">
-        {/* CARD (same size as the add-card preview) */}
+      <div className="modalCenter">
         <div className="cardPlaceholder">
-          {/* top-left site logo */}
+          {/* Logo */}
           <img
             src="/assets/logos/E-square-logo.png"
             alt="Site Logo"
             className="cardLogo"
           />
 
-          {/* chip */}
+          {/* Chip */}
           <div className="cardChip" />
 
-          {/* CVV (top-right) */}
+          {/* CVV (top-right, same as Add Card) */}
           <div className="cardCVV">
-            <div className="label">CVV:</div>
-            <div className="cardInput cvvInput">
-              {method?.cvv ? String(method.cvv) : "N/A"}
-            </div>
+            <label className="label">CVV:</label>
+            <div className="cardInput cvvInput">{method?.cvv || "N/A"}</div>
           </div>
 
-          {/* Card number */}
+          {/* Card Number (center) */}
           <div className="cardNumber">
             <div className="cardInput numberInput">
-              {formatCardNumber(method?.cardNumber)}
+              {formatCardNumber(method?.cardNumber || "")}
             </div>
           </div>
 
@@ -58,60 +55,16 @@ export default function CardPreviewModal({ method, onClose }) {
             </div>
           </div>
 
-          {/* Footer */}
+          {/* Footer: name + brand */}
           <div className="cardFooter">
             <div className="cardInput nameInput">
-              {method?.cardHolderName || "CARDHOLDER"}
+              {method?.cardHolderName || "CARDHOLDER NAME"}
             </div>
             <img
               src="/assets/logos/simple-eTech.png"
               alt="Brand"
               className="brandLogo"
             />
-          </div>
-        </div>
-
-        {/* DETAILS (below card; card size unchanged) */}
-        <div className="cardDetailsPanel">
-          <div className="detailRow">
-            <span className="detailLabel">Card Number</span>
-            <span className="detailValue">
-              {formatCardNumber(method?.cardNumber)}
-            </span>
-          </div>
-          <div className="detailRow">
-            <span className="detailLabel">Card Holder</span>
-            <span className="detailValue">{method?.cardHolderName || "-"}</span>
-          </div>
-          <div className="detailRow">
-            <span className="detailLabel">Expiry</span>
-            <span className="detailValue">
-              {mm}/{yy}
-            </span>
-          </div>
-          <div className="detailRow">
-            <span className="detailLabel">CVV</span>
-            <span className="detailValue">
-              {method?.cvv ? String(method.cvv) : "N/A"}
-            </span>
-          </div>
-          <div className="detailRow">
-            <span className="detailLabel">Billing Address</span>
-            <span className="detailValue">{method?.billingAddress || "-"}</span>
-          </div>
-          <div className="detailRow">
-            <span className="detailLabel">Default</span>
-            <span className="detailValue">
-              {method?.isDefault ? "Yes" : "No"}
-            </span>
-          </div>
-          <div className="detailRow">
-            <span className="detailLabel">Payment ID</span>
-            <span className="detailValue">{method?.paymentID ?? "-"}</span>
-          </div>
-          <div className="detailRow">
-            <span className="detailLabel">User Number</span>
-            <span className="detailValue">{method?.userNumber ?? "-"}</span>
           </div>
         </div>
       </div>
