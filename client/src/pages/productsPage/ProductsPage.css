@@ -1,0 +1,432 @@
+/* ProductsPage.css — FINAL FIX for uniform images & clean layout */
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif;
+  background-color: #0b0b0b;
+  color: #cfe9e4;
+}
+
+/* ===== Header & Filters ===== */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+header h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+header input,
+header select {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: #121212;
+  color: #cfe9e4;
+  padding: 8px 12px;
+  outline: none;
+  width: 100%;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+header input:focus,
+header select:focus {
+  border-color: #34d399;
+}
+
+/* ===== Main Content ===== */
+main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+main .grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+/* ===== Product Cards ===== */
+article {
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: box-shadow 0.2s, transform 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+article:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  transform: translateY(-2px);
+}
+
+/* ===== FIXED-HEIGHT IMAGE CONTAINER ===== */
+.image-container {
+  position: relative;
+  width: 100%;
+  height: 200px; /* fixed height for all images */
+  background: #0c0c0c;
+  overflow: hidden;
+}
+
+.image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* ensures no distortion */
+  object-position: center; /* keeps image centered */
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+article:hover .image-container img {
+  transform: scale(1.03);
+}
+
+/* ===== Card Content ===== */
+article .p-3 {
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+  flex: 1;
+}
+
+article .font-medium {
+  font-weight: 500;
+}
+
+article .text-xs {
+  font-size: 12px;
+}
+
+article .text-sm {
+  font-size: 14px;
+}
+
+/* ===== Buttons ===== */
+article button {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: #1a1a1a;
+  color: #cfe9e4;
+  font-size: 13px;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: border 0.2s, background 0.2s;
+}
+
+article button:hover {
+  border-color: #34d399;
+  background: #1f1f1f;
+}
+
+article button:last-child:hover {
+  border-color: #f87171;
+}
+
+/* ===== Badges ===== */
+article span {
+  font-size: 11px;
+  background: rgba(220, 38, 38, 0.8);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 9999px;
+  position: absolute;
+  top: 8px;
+  left: 8px;
+}
+/* ===== Product Card Layout Fix ===== */
+.product-card {
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  transition: box-shadow 0.2s, transform 0.2s;
+  height: 100%; /* ensures uniform height across cards */
+}
+
+.product-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  transform: translateY(-2px);
+}
+
+/* Fixed height image */
+.image-container {
+  position: relative;
+  width: 100%;
+  height: 150px; /* smaller fixed height */
+  overflow: hidden;
+  background: #0c0c0c;
+}
+
+.image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.product-card:hover .image-container img {
+  transform: scale(1.05);
+}
+
+/* Out of stock badge */
+.badge-out {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(220, 38, 38, 0.85);
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 9999px;
+}
+
+/* Content section */
+.card-content {
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+  flex: 1;
+}
+
+.product-name {
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.product-meta {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.price-stock {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.price {
+  font-weight: 600;
+}
+
+.stock {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* Buttons full width at bottom */
+.card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn {
+  width: 100%;
+  padding: 8px 0;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.btn-cart {
+  background: #059669;
+  color: #fff;
+}
+
+.btn-cart:hover {
+  background: #10b981;
+}
+
+.btn-wishlist {
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cfe9e4;
+}
+
+.btn-wishlist:hover {
+  border-color: #f472b6;
+}
+/* Thinner card styles */
+.thin-card {
+  max-width: 240px; /* Makes card narrower */
+  margin: 0 auto; /* Center if grid gap > card width */
+}
+
+/* Reduce image height */
+.thin-card .image-container {
+  height: 120px; /* Smaller fixed height */
+}
+
+/* Tighten padding & gaps */
+.thin-card .card-content {
+  padding: 8px;
+  gap: 4px;
+}
+
+.thin-card .product-name {
+  font-size: 0.9rem;
+}
+
+.thin-card .product-meta {
+  font-size: 11px;
+}
+
+.thin-card .price-stock {
+  font-size: 12px;
+}
+
+/* Smaller buttons */
+.thin-card .card-actions {
+  padding: 6px;
+  gap: 4px;
+}
+
+.thin-card .btn {
+  padding: 6px 0;
+  font-size: 13px;
+}
+/* Grid layout with fixed card width */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 4px; /* ⬅️ smaller gap for tighter spacing */
+  justify-content: center;
+  grid-auto-rows: 1fr;
+  margin: 0 auto;
+}
+/* Product card uniform width & height */
+.product-card {
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  transition: box-shadow 0.2s, transform 0.2s;
+  height: 100%; /* Ensures cards in same row have equal height */
+  width: 150px; /* Fixed width for all cards */
+  margin: 0;
+}
+
+.product-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  transform: translateY(-2px);
+}
+
+/* Fixed image height */
+.image-container {
+  position: relative;
+  width: 100%;
+  height: 140px;
+  background: #0c0c0c;
+  overflow: hidden;
+}
+
+.image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Card content tighter */
+.card-content {
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+}
+
+.card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-actions .btn {
+  width: 100%;
+  padding: 6px 0;
+  font-size: 13px;
+  border-radius: 6px;
+}
+
+.search-sort-row {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* space between search & sort */
+  flex-wrap: nowrap; /* prevents wrapping to next line */
+}
+
+.search-sort-row > * {
+  flex: 1; /* both take equal width */
+  max-width: 50%; /* each half of the row */
+}
+
+.search-sort-row select {
+  min-width: 160px; /* keeps sort dropdown from shrinking too much */
+  flex: 0; /* prevent it from stretching like the search bar */
+}
+
+.sort-by {
+  margin-left: auto; /* Pushes it to the far right if flex is used */
+}
+
+.sort-select {
+  padding: 8px 12px;
+  background: #121212;
+  color: #cfe9e4;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.sort-select:focus {
+  border-color: #34d399;
+}
+/* Stock badge at top */
+.stock-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.stock-in {
+  background: #10b981; /* green */
+}
+
+.stock-low {
+  background: #f59e0b; /* orange */
+}
+
+.stock-out {
+  background: #ef4444; /* red */
+}

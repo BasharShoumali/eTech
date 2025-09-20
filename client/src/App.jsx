@@ -5,6 +5,8 @@ import UpdateProfile from "./pages/updateProfile/UpdateProfile";
 import Home from "./pages/home/Home";
 import AdminsPage from "./pages/admin/AdminsPage";
 import PaymentMethodsPage from "./pages/paymentMethonds/PaymentMethodsPage";
+import ProductsPage from "./pages/productsPage/ProductsPage";
+
 export default function App() {
   return (
     <>
@@ -18,6 +20,7 @@ export default function App() {
             path="/account/payment-methods"
             element={<PaymentMethodsPage />}
           />
+          <Route path="/products-page" element={<ProductsPage />} />
         </Routes>
       </main>
     </>

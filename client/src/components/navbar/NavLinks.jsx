@@ -8,7 +8,7 @@ export default function NavLinks({
   onLogout,
 }) {
   const LINKS = [
-    { to: "/products", label: "Products" },
+    { to: "/products-page", label: "Products" },
     { to: "/cart", label: <CartIcon />, onClick: onOpenCart },
     { to: "/account/update", label: "Update Profile" },
   ];

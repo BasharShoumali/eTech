@@ -24,8 +24,7 @@
   -webkit-overflow-scrolling: touch;
   scrollbar-gutter: stable both-edges;
   margin: auto;
-  display: flex;
-  flex-direction: column;
+
   align-items: stretch;
 }
 .modalHead {
